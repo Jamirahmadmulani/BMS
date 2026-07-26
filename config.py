@@ -8,7 +8,10 @@ DB_CONFIG = {
     'charset': 'utf8mb4'
 }
 
-SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or (
-    f"mysql+pymysql://{DB_CONFIG['user']}:{DB_CONFIG['password']}"
-    f"@{DB_CONFIG['host']}/{DB_CONFIG['database']}?charset={DB_CONFIG['charset']}"
-)
+if os.environ.get('USE_SQLITE') == '1':
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///bms.db'
+else:
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or (
+        f"mysql+pymysql://{DB_CONFIG['user']}:{DB_CONFIG['password']}"
+        f"@{DB_CONFIG['host']}/{DB_CONFIG['database']}?charset={DB_CONFIG['charset']}"
+    )
