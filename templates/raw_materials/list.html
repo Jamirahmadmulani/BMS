@@ -1,0 +1,562 @@
+{% extends "base.html" %}
+{% block title %}Dear Soft IT Solutions{% endblock %}
+
+{% block content %}
+<div class="page-title-bar">
+    <h5><i class="bi bi-boxes me-2"></i>Raw Material Management</h5>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+        <li class="breadcrumb-item active">Raw Materials</li>
+    </ol></nav>
+</div>
+
+<ul class="nav bms-tabs mb-3" id="rmTabs">
+    <li class="nav-item"><a class="nav-link active" href="#" onclick="showTab('materials',this);return false;"><i class="bi bi-boxes me-1"></i>Materials</a></li>
+    <li class="nav-item"><a class="nav-link" href="#" onclick="showTab('suppliers',this);return false;"><i class="bi bi-shop me-1"></i>Suppliers</a></li>
+    <li class="nav-item"><a class="nav-link" href="#" onclick="showTab('purchases',this);return false;"><i class="bi bi-cart me-1"></i>Purchases</a></li>
+    <li class="nav-item"><a class="nav-link" href="#" onclick="showTab('transactions',this);return false;"><i class="bi bi-arrow-left-right me-1"></i>Transactions</a></li>
+</ul>
+
+<!-- MATERIALS TAB -->
+<div id="tab-materials">
+    <div class="panel">
+        <div class="panel-head">
+            <h6><i class="bi bi-boxes me-2"></i>Raw Materials Stock</h6>
+            <div class="d-flex gap-2 align-items-center"><span id="mat-search-wrap"></span><span id="mat-export-wrap"></span><button class="btn-bms-primary" onclick="openAddMatModal()"><i class="bi bi-plus-circle"></i> Add Material</button></div>
+        </div>
+        <div class="table-responsive">
+            <table class="bms-table" id="matTable">
+                <thead><tr><th>Sr.No</th><th>Material Name</th><th>Unit</th><th>Supplier</th><th>Stock Qty</th><th>Description</th><th>Edit</th><th>Delete</th></tr></thead>
+                <tbody id="matTableBody"><tr><td colspan="8" class="loading-spinner"><span class="spinner-border spinner-border-sm"></span> Loading...</td></tr></tbody>
+            </table>
+        </div>
+        <div id="mat-pager"></div>
+    </div>
+</div>
+
+<!-- SUPPLIERS TAB -->
+<div id="tab-suppliers" style="display:none">
+    <div class="panel">
+        <div class="panel-head">
+            <h6><i class="bi bi-shop me-2"></i>Suppliers</h6>
+            <div class="d-flex gap-2 align-items-center"><span id="sup-search-wrap"></span><span id="sup-export-wrap"></span><button class="btn-bms-primary" onclick="openAddSupModal()"><i class="bi bi-plus-circle"></i> Add Supplier</button></div>
+        </div>
+        <div class="table-responsive">
+            <table class="bms-table" id="supTable">
+                <thead><tr><th>Sr.No</th><th>Supplier Name</th><th>Contact Number</th><th>Email</th><th>Purchases</th><th>Edit</th><th>Delete</th></tr></thead>
+                <tbody id="supTableBody"><tr><td colspan="7" class="text-center py-3 text-muted">Load tab to see data</td></tr></tbody>
+            </table>
+        </div>
+        <div id="sup-pager"></div>
+    </div>
+</div>
+
+<!-- PURCHASES TAB -->
+<div id="tab-purchases" style="display:none">
+    <div class="panel">
+        <div class="panel-head">
+            <h6><i class="bi bi-cart me-2"></i>Purchases</h6>
+            <div class="d-flex gap-2 align-items-center"><span id="purch-search-wrap"></span><span id="purch-export-wrap"></span><button class="btn-bms-primary" onclick="openAddPurchModal()"><i class="bi bi-plus-circle"></i> Add Purchase</button></div>
+        </div>
+        <div class="table-responsive">
+            <table class="bms-table" id="purchTable">
+                <thead><tr><th>Sr.No</th><th>Date</th><th>Material</th><th>Supplier</th><th>Quantity</th><th>Unit Price</th><th>Total</th><th>Received At</th><th>Notes</th><th>Edit</th><th>Delete</th></tr></thead>
+                <tbody id="purchTableBody"><tr><td colspan="11" class="text-center py-3 text-muted">Load tab to see data</td></tr></tbody>
+            </table>
+        </div>
+        <div id="purch-pager"></div>
+    </div>
+</div>
+
+<!-- TRANSACTIONS TAB -->
+<div id="tab-transactions" style="display:none">
+    <div class="panel">
+        <div class="panel-head">
+            <h6><i class="bi bi-arrow-left-right me-2"></i>Stock Transactions</h6>
+            <div class="d-flex gap-2 align-items-center"><span id="rmtx-search-wrap"></span><span id="rmtx-export-wrap"></span><button class="btn-bms-primary" onclick="openAddTxModal()"><i class="bi bi-plus-circle"></i> New Transaction</button></div>
+        </div>
+        <div class="table-responsive">
+            <table class="bms-table" id="rmtxTable">
+                <thead><tr><th>Sr.No</th><th>Date</th><th>Supplier Name</th><th>Transaction Type</th><th>Notes</th></tr></thead>
+                <tbody id="txTableBody"><tr><td colspan="5" class="text-center py-3 text-muted">Load tab to see data</td></tr></tbody>
+            </table>
+        </div>
+        <div id="rmtx-pager"></div>
+    </div>
+</div>
+
+<!-- MATERIAL MODAL -->
+<div class="modal fade" id="matModal" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title" id="matModalTitle"><i class="bi bi-boxes me-2"></i>Add Material</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body"><form id="matForm"><input type="hidden" id="matId">
+            <div class="mb-3">
+                <label class="form-label">Material Name *</label>
+                <input type="text" class="form-control" name="name" id="matNameInput" required>
+                <div class="invalid-feedback">Material Name is mandatory.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Unit *</label>
+                <input type="text" class="form-control" name="unit" id="matUnitInput" placeholder="kg, liters, pieces..." required>
+                <div class="invalid-feedback">Unit is mandatory.</div>
+            </div>
+            <div class="mb-3 position-relative">
+                <label class="form-label">Supplier Name *</label>
+                <input type="hidden" name="supplier_id" id="matSupplierIdInput">
+                <input type="text" class="form-control" id="matSupplierSearchInput" placeholder="Search and select a supplier..." autocomplete="off" required>
+                <div id="matSupplierDropdown" class="list-group position-absolute w-100" style="z-index:1060; max-height:200px; overflow-y:auto; display:none;"></div>
+                <div class="invalid-feedback" id="matSupplierFeedback">Supplier Name is mandatory and must be selected from the list.</div>
+            </div>
+            <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" name="description" id="matDescInput" rows="3"></textarea></div>
+        </form></div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" form="matForm" class="btn-bms-primary"><i class="bi bi-save"></i> Save</button></div>
+    </div></div>
+</div>
+
+<!-- SUPPLIER MODAL -->
+<div class="modal fade" id="supModal" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title" id="supModalTitle"><i class="bi bi-shop me-2"></i>Add Supplier</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body"><form id="supForm"><input type="hidden" id="supId">
+            <div class="mb-3">
+                <label class="form-label">Supplier Name *</label>
+                <input type="text" class="form-control" name="name" id="supNameInput" required>
+                <div class="invalid-feedback">Supplier Name is mandatory.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Contact Number *</label>
+                <input type="text" class="form-control" name="mobile" id="supMobileInput" placeholder="10 digit number" inputmode="numeric" maxlength="10" required>
+                <div class="invalid-feedback">Contact Number is mandatory and must contain 10 digits.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Email</label>
+                <input type="email" class="form-control" name="email" id="supEmailInput">
+                <div class="invalid-feedback">Email must be in a valid email format.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Address *</label>
+                <textarea class="form-control" name="address" id="supAddressInput" rows="2" required></textarea>
+                <div class="invalid-feedback">Address is mandatory.</div>
+            </div>
+        </form></div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" form="supForm" class="btn-bms-primary"><i class="bi bi-save"></i> Save</button></div>
+    </div></div>
+</div>
+
+<!-- PURCHASE MODAL -->
+<div class="modal fade" id="purchModal" tabindex="-1">
+    <div class="modal-dialog modal-lg"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title" id="purchModalTitle"><i class="bi bi-cart me-2"></i>Add Purchase</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body"><form id="purchForm"><input type="hidden" id="purchId">
+            <div class="row g-3">
+                <div class="col-md-6"><label class="form-label">Material *</label><select class="form-select" name="material_id" id="purchMatSelect" required><option value="">-- Select Material --</option></select></div>
+                <div class="col-md-6"><label class="form-label">Supplier</label><select class="form-select" name="supplier_id" id="purchSupSelect"><option value="">-- Select Supplier --</option></select></div>
+                <div class="col-md-4"><label class="form-label">Quantity *</label><input type="number" class="form-control" name="quantity" required step="0.01" oninput="calcPurchTotal()"></div>
+                <div class="col-md-4"><label class="form-label">Unit Price (Rs.) *</label><input type="number" class="form-control" name="unit_price" required step="0.01" oninput="calcPurchTotal()"></div>
+                <div class="col-md-4"><label class="form-label">Total Price (Rs.)</label><input type="number" class="form-control bg-light" id="totalPriceDisplay" readonly step="0.01"></div>
+                <div class="col-md-6"><label class="form-label">Purchase Date *</label><input type="date" class="form-control" name="purchase_date" required></div>
+                <div class="col-12"><label class="form-label">Notes</label><textarea class="form-control" name="notes" rows="2"></textarea></div>
+            </div>
+        </form></div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" form="purchForm" class="btn-bms-primary"><i class="bi bi-save"></i> Save</button></div>
+    </div></div>
+</div>
+
+<!-- TRANSACTION MODAL -->
+<div class="modal fade" id="txModal" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title"><i class="bi bi-arrow-left-right me-2"></i>Stock Transaction</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body"><form id="txForm">
+            <div class="mb-3 position-relative">
+                <label class="form-label">Supplier Name *</label>
+                <input type="hidden" name="supplier_id" id="txSupplierIdInput">
+                <input type="text" class="form-control" id="txSupplierSearchInput" placeholder="Search and select a supplier..." autocomplete="off" required>
+                <div id="txSupplierDropdown" class="list-group position-absolute w-100" style="z-index:1060; max-height:200px; overflow-y:auto; display:none;"></div>
+                <div class="invalid-feedback" id="txSupplierFeedback">Supplier Name is mandatory.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Transaction Type *</label>
+                <select class="form-select" name="transaction_type" id="txTypeInput" required>
+                    <option value="">-- Select Transaction Type --</option>
+                    <option value="Online">Online</option>
+                    <option value="Cash">Cash</option>
+                    <option value="RTGS">RTGS</option>
+                    <option value="Cheque">Cheque</option>
+                </select>
+                <div class="invalid-feedback">Transaction Type is mandatory.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Date *</label>
+                <input type="date" class="form-control" name="date" id="txDateInput" required>
+                <div class="invalid-feedback">Date is mandatory.</div>
+            </div>
+            <div class="mb-3"><label class="form-label">Notes</label><textarea class="form-control" name="notes" id="txNotesInput" rows="2"></textarea></div>
+        </form></div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" form="txForm" class="btn-bms-primary"><i class="bi bi-save"></i> Save</button></div>
+    </div></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function showTab(tab,el) {
+    document.querySelectorAll('[id^="tab-"]').forEach(e => e.style.display = 'none');
+    document.getElementById('tab-' + tab).style.display = 'block';
+    document.querySelectorAll('#rmTabs .nav-link').forEach(e => e.classList.remove('active'));
+    el.classList.add('active');
+    if (tab === 'materials') loadMaterials();
+    if (tab === 'suppliers') loadSuppliers();
+    if (tab === 'purchases') loadPurchases();
+    if (tab === 'transactions') loadTransactions();
+}
+
+function loadMaterials() {
+    tableLoading('matTableBody', 8);
+    $.get('/raw-materials/data', function(data) {
+        document.getElementById('mat-pager').innerHTML = pagerBar('mat');
+        document.getElementById('mat-search-wrap').innerHTML = searchBar('mat','Search materials...');
+        document.getElementById('mat-export-wrap').innerHTML = exportBar('mat','raw_materials','matTable');
+        BmsPager.init('mat', data, function(slice, offset) {
+            if (!slice.length) { tableEmpty('matTableBody', 8); return; }
+            let html = '';
+            slice.forEach((m, i) => {
+                const rowClass = m.low_stock ? 'class="low-stock-row"' : '';
+                const lowBadge = m.low_stock ? '<span class="low-stock-badge">LOW</span>' : '';
+                html += `<tr ${rowClass}><td>${offset+i+1}</td><td><strong>${m.name}</strong></td><td>${m.unit||'--'}</td><td>${m.supplier_name||'<em class="text-muted">None</em>'}</td><td>${parseFloat(m.stock_quantity).toLocaleString()} ${m.unit||''}${lowBadge}</td><td>${m.description?m.description.substring(0,60):'--'}</td><td>${editBtn('openEditMatModal('+m.id+')')}</td><td>${deleteBtn('deleteMat('+m.id+')')}</td></tr>`;
+            });
+            document.getElementById('matTableBody').innerHTML = html;
+        }, {perPage:25});
+    });
+}
+
+function loadSuppliers() {
+    tableLoading('supTableBody', 7);
+    $.get('/raw-materials/suppliers/data', function(data) {
+        document.getElementById('sup-pager').innerHTML = pagerBar('sup');
+        document.getElementById('sup-search-wrap').innerHTML = searchBar('sup','Search suppliers...');
+        document.getElementById('sup-export-wrap').innerHTML = exportBar('sup','suppliers','supTable');
+        BmsPager.init('sup', data, function(slice, offset) {
+            if (!slice.length) { tableEmpty('supTableBody', 7); return; }
+            let html = '';
+            slice.forEach((s, i) => {
+                html += `<tr><td>${offset+i+1}</td><td><strong>${s.name}</strong></td><td>${s.mobile||'--'}</td><td>${s.email||'--'}</td><td><span class="badge bg-secondary">${s.purchase_count} orders</span></td><td>${editBtn('openEditSupModal('+s.id+')')}</td><td>${deleteBtn('deleteSup('+s.id+')')}</td></tr>`;
+            });
+            document.getElementById('supTableBody').innerHTML = html;
+        }, {perPage:25});
+    });
+}
+
+function loadPurchases() {
+    tableLoading('purchTableBody', 11);
+    $.get('/raw-materials/purchases/data', function(data) {
+        document.getElementById('purch-pager').innerHTML = pagerBar('purch');
+        document.getElementById('purch-search-wrap').innerHTML = searchBar('purch','Search purchases...');
+        document.getElementById('purch-export-wrap').innerHTML = exportBar('purch','purchases','purchTable');
+        BmsPager.init('purch', data, function(slice, offset) {
+            if (!slice.length) { tableEmpty('purchTableBody', 11); return; }
+            let html = '';
+            slice.forEach((p, i) => {
+                html += `<tr>
+                    <td>${offset+i+1}</td>
+                    <td>${fmtDate(p.purchase_date)}</td>
+                    <td>${p.material_name} <small class="text-muted">(${p.unit||''})</small></td>
+                    <td>${p.supplier_name||'--'}</td>
+                    <td>${parseFloat(p.quantity).toLocaleString()}</td>
+                    <td>${fmtCurrency(p.unit_price)}</td>
+                    <td><strong>${fmtCurrency(p.total_price)}</strong></td>
+                    <td>${p.received_at?p.received_at.replace('T',' ').substring(0,16):'--'}</td>
+                    <td>${p.notes?p.notes.substring(0,40):'--'}</td>
+                    <td>${editBtn('openEditPurchModal('+p.id+')')}</td>
+                    <td>${deleteBtn('deletePurch('+p.id+')')}</td>
+                </tr>`;
+            });
+            document.getElementById('purchTableBody').innerHTML = html;
+        }, {perPage:25});
+    });
+}
+
+function loadTransactions() {
+    tableLoading('txTableBody', 5);
+    $.get('/raw-materials/transactions/data', function(data) {
+        document.getElementById('rmtx-pager').innerHTML = pagerBar('rmtx');
+        document.getElementById('rmtx-search-wrap').innerHTML = searchBar('rmtx','Search transactions...');
+        document.getElementById('rmtx-export-wrap').innerHTML = exportBar('rmtx','stock_transactions','rmtxTable');
+        BmsPager.init('rmtx', data, function(slice, offset) {
+            if (!slice.length) { tableEmpty('txTableBody', 5); return; }
+            let html = '';
+            slice.forEach((t, i) => {
+                html += `<tr><td>${offset+i+1}</td><td>${fmtDate(t.date)}</td><td>${t.supplier_name||'<em class="text-muted">None</em>'}</td><td>${t.transaction_type}</td><td>${t.notes?t.notes.substring(0,50):'--'}</td></tr>`;
+            });
+            document.getElementById('txTableBody').innerHTML = html;
+        }, {perPage:25});
+    });
+}
+
+function calcPurchTotal() {
+    const qty = parseFloat(document.getElementById('purchForm').querySelector('[name="quantity"]').value) || 0;
+    const price = parseFloat(document.getElementById('purchForm').querySelector('[name="unit_price"]').value) || 0;
+    document.getElementById('totalPriceDisplay').value = (qty * price).toFixed(2);
+}
+
+function loadMatSelect(selId) {
+    $.get('/raw-materials/materials-list', function(data) {
+        const sel = document.getElementById(selId);
+        sel.innerHTML = '<option value="">-- Select Material --</option>';
+        data.forEach(m => sel.innerHTML += `<option value="${m.id}">${m.name} (${m.unit||''})</option>`);
+    });
+}
+function loadSupSelect(selId) {
+    $.get('/raw-materials/suppliers-list', function(data) {
+        const sel = document.getElementById(selId);
+        sel.innerHTML = '<option value="">-- No Supplier --</option>';
+        data.forEach(s => sel.innerHTML += `<option value="${s.id}">${s.name}</option>`);
+    });
+}
+
+let _matAllSuppliers = [];
+function _matLoadSupplierOptions(cb) {
+    $.get('/raw-materials/suppliers-list', function(data) {
+        _matAllSuppliers = data || [];
+        if (cb) cb();
+    });
+}
+function _matRenderSupplierDropdown(filterText) {
+    const dropdown = document.getElementById('matSupplierDropdown');
+    const term = (filterText || '').trim().toLowerCase();
+    const matches = _matAllSuppliers.filter(s => s.name.toLowerCase().includes(term));
+    if (!matches.length) {
+        dropdown.innerHTML = '<div class="list-group-item text-muted small">No suppliers found</div>';
+    } else {
+        dropdown.innerHTML = matches.map(s =>
+            `<button type="button" class="list-group-item list-group-item-action" onclick="_matSelectSupplier(${s.id}, '${s.name.replace(/'/g, "\\'")}')">${s.name}</button>`
+        ).join('');
+    }
+    dropdown.style.display = 'block';
+}
+function _matSelectSupplier(id, name) {
+    document.getElementById('matSupplierIdInput').value = id;
+    document.getElementById('matSupplierSearchInput').value = name;
+    document.getElementById('matSupplierSearchInput').classList.remove('is-invalid');
+    document.getElementById('matSupplierDropdown').style.display = 'none';
+}
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('matSupplierSearchInput');
+    if (searchInput) {
+        searchInput.addEventListener('focus', function() { _matRenderSupplierDropdown(this.value); });
+        searchInput.addEventListener('input', function() {
+            document.getElementById('matSupplierIdInput').value = '';
+            _matRenderSupplierDropdown(this.value);
+        });
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#matSupplierSearchInput') && !e.target.closest('#matSupplierDropdown')) {
+                document.getElementById('matSupplierDropdown').style.display = 'none';
+            }
+        });
+    }
+});
+
+function clearMatValidation(){
+    document.getElementById('matForm').querySelectorAll('.is-invalid').forEach(el=>el.classList.remove('is-invalid'));
+}
+function validateMatForm(){
+    clearMatValidation();
+    let valid = true;
+    const markInvalid = id => { document.getElementById(id).classList.add('is-invalid'); valid = false; };
+
+    if (!document.getElementById('matNameInput').value.trim()) markInvalid('matNameInput');
+    if (!document.getElementById('matUnitInput').value.trim()) markInvalid('matUnitInput');
+    if (!document.getElementById('matSupplierIdInput').value) markInvalid('matSupplierSearchInput');
+
+    return valid;
+}
+function openAddMatModal() {
+    document.getElementById('matModalTitle').innerHTML = '<i class="bi bi-boxes me-2"></i>Add Material';
+    document.getElementById('matForm').reset(); document.getElementById('matId').value = '';
+    document.getElementById('matSupplierIdInput').value = '';
+    document.getElementById('matSupplierSearchInput').value = '';
+    document.getElementById('matSupplierDropdown').style.display = 'none';
+    clearMatValidation();
+    _matLoadSupplierOptions();
+    openModal('matModal');
+}
+function openEditMatModal(id) {
+    document.getElementById('matModalTitle').innerHTML = '<i class="bi bi-pencil-square me-2"></i>Edit Material';
+    clearMatValidation();
+    _matLoadSupplierOptions(function() {
+        $.get('/raw-materials/get/' + id, function(m) {
+            document.getElementById('matId').value = id;
+            const f = document.getElementById('matForm');
+            f.querySelector('[name="name"]').value = m.name || '';
+            f.querySelector('[name="unit"]').value = m.unit || '';
+            f.querySelector('[name="description"]').value = m.description || '';
+            document.getElementById('matSupplierIdInput').value = m.supplier_id || '';
+            document.getElementById('matSupplierSearchInput').value = m.supplier_name || '';
+            openModal('matModal');
+        });
+    });
+}
+function deleteMat(id) { confirmDelete('/raw-materials/delete/' + id, loadMaterials); }
+
+function clearSupValidation(){
+    document.getElementById('supForm').querySelectorAll('.is-invalid').forEach(el=>el.classList.remove('is-invalid'));
+}
+function validateSupForm(){
+    clearSupValidation();
+    let valid = true;
+    const markInvalid = id => { document.getElementById(id).classList.add('is-invalid'); valid = false; };
+
+    if (!document.getElementById('supNameInput').value.trim()) markInvalid('supNameInput');
+
+    const mobile = document.getElementById('supMobileInput').value.trim();
+    if (!/^\d{10}$/.test(mobile)) markInvalid('supMobileInput');
+
+    const email = document.getElementById('supEmailInput').value.trim();
+    if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) markInvalid('supEmailInput');
+
+    if (!document.getElementById('supAddressInput').value.trim()) markInvalid('supAddressInput');
+
+    return valid;
+}
+function openAddSupModal() {
+    document.getElementById('supModalTitle').innerHTML = '<i class="bi bi-shop me-2"></i>Add Supplier';
+    document.getElementById('supForm').reset(); document.getElementById('supId').value = '';
+    clearSupValidation();
+    openModal('supModal');
+}
+function openEditSupModal(id) {
+    document.getElementById('supModalTitle').innerHTML = '<i class="bi bi-pencil-square me-2"></i>Edit Supplier';
+    clearSupValidation();
+    $.get('/raw-materials/suppliers/get/' + id, function(s) {
+        document.getElementById('supId').value = id;
+        const f = document.getElementById('supForm');
+        ['name','mobile','email','address'].forEach(k=>{ const el=f.querySelector('[name="'+k+'"]'); if(el) el.value=s[k]||''; });
+        openModal('supModal');
+    });
+}
+function deleteSup(id) { confirmDelete('/raw-materials/suppliers/delete/' + id, loadSuppliers); }
+
+function openAddPurchModal() {
+    document.getElementById('purchModalTitle').innerHTML = '<i class="bi bi-cart me-2"></i>Add Purchase';
+    document.getElementById('purchForm').reset(); document.getElementById('purchId').value = '';
+    document.getElementById('totalPriceDisplay').value = '';
+    loadMatSelect('purchMatSelect'); loadSupSelect('purchSupSelect');
+    openModal('purchModal');
+}
+function openEditPurchModal(id) {
+    document.getElementById('purchModalTitle').innerHTML = '<i class="bi bi-pencil-square me-2"></i>Edit Purchase';
+    loadMatSelect('purchMatSelect'); loadSupSelect('purchSupSelect');
+    $.get('/raw-materials/purchases/get/' + id, function(p) {
+        document.getElementById('purchId').value = id;
+        const f = document.getElementById('purchForm');
+        f.querySelector('[name="quantity"]').value = p.quantity;
+        f.querySelector('[name="unit_price"]').value = p.unit_price;
+        f.querySelector('[name="purchase_date"]').value = p.purchase_date || '';
+        f.querySelector('[name="notes"]').value = p.notes || '';
+        document.getElementById('totalPriceDisplay').value = p.total_price;
+        setTimeout(() => {
+            document.getElementById('purchMatSelect').value = p.material_id || '';
+            document.getElementById('purchSupSelect').value = p.supplier_id || '';
+        }, 300);
+        openModal('purchModal');
+    });
+}
+function deletePurch(id) { confirmDelete('/raw-materials/purchases/delete/' + id, loadPurchases); }
+
+let _txAllSuppliers = [];
+function _txLoadSupplierOptions(cb) {
+    $.get('/raw-materials/suppliers-list', function(data) {
+        _txAllSuppliers = data || [];
+        if (cb) cb();
+    });
+}
+function _txRenderSupplierDropdown(filterText) {
+    const dropdown = document.getElementById('txSupplierDropdown');
+    const term = (filterText || '').trim().toLowerCase();
+    const matches = _txAllSuppliers.filter(s => s.name.toLowerCase().includes(term));
+    if (!matches.length) {
+        dropdown.innerHTML = '<div class="list-group-item text-muted small">No suppliers found</div>';
+    } else {
+        dropdown.innerHTML = matches.map(s =>
+            `<button type="button" class="list-group-item list-group-item-action" onclick="_txSelectSupplier(${s.id}, '${s.name.replace(/'/g, "\\'")}')">${s.name}</button>`
+        ).join('');
+    }
+    dropdown.style.display = 'block';
+}
+function _txSelectSupplier(id, name) {
+    document.getElementById('txSupplierIdInput').value = id;
+    document.getElementById('txSupplierSearchInput').value = name;
+    document.getElementById('txSupplierSearchInput').classList.remove('is-invalid');
+    document.getElementById('txSupplierDropdown').style.display = 'none';
+}
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('txSupplierSearchInput');
+    if (searchInput) {
+        searchInput.addEventListener('focus', function() { _txRenderSupplierDropdown(this.value); });
+        searchInput.addEventListener('input', function() {
+            document.getElementById('txSupplierIdInput').value = '';
+            _txRenderSupplierDropdown(this.value);
+        });
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('#txSupplierSearchInput') && !e.target.closest('#txSupplierDropdown')) {
+                document.getElementById('txSupplierDropdown').style.display = 'none';
+            }
+        });
+    }
+});
+function clearTxValidation(){
+    document.getElementById('txForm').querySelectorAll('.is-invalid').forEach(el=>el.classList.remove('is-invalid'));
+}
+function validateTxForm(){
+    clearTxValidation();
+    let valid = true;
+    const markInvalid = id => { document.getElementById(id).classList.add('is-invalid'); valid = false; };
+
+    if (!document.getElementById('txSupplierIdInput').value) markInvalid('txSupplierSearchInput');
+    if (!document.getElementById('txTypeInput').value) markInvalid('txTypeInput');
+    if (!document.getElementById('txDateInput').value) markInvalid('txDateInput');
+
+    return valid;
+}
+function openAddTxModal() {
+    document.getElementById('txForm').reset();
+    document.getElementById('txSupplierIdInput').value = '';
+    document.getElementById('txSupplierSearchInput').value = '';
+    document.getElementById('txSupplierDropdown').style.display = 'none';
+    clearTxValidation();
+    _txLoadSupplierOptions();
+    openModal('txModal');
+}
+
+document.getElementById('matForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (!validateMatForm()) { showAlert('error', 'Please fix the highlighted fields.'); return; }
+    const id = document.getElementById('matId').value;
+    $.ajax({ url: id ? '/raw-materials/edit/' + id : '/raw-materials/add', method: 'POST', data: $(this).serialize(),
+        success: function(res) { if (res.success) { showAlert('success', res.message); closeModal('matModal'); loadMaterials(); } else showAlert('error', res.message); }
+    });
+});
+document.getElementById('supForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (!validateSupForm()) { showAlert('error', 'Please fix the highlighted fields.'); return; }
+    const id = document.getElementById('supId').value;
+    $.ajax({ url: id ? '/raw-materials/suppliers/edit/' + id : '/raw-materials/suppliers/add', method: 'POST', data: $(this).serialize(),
+        success: function(res) { if (res.success) { showAlert('success', res.message); closeModal('supModal'); loadSuppliers(); } else showAlert('error', res.message); }
+    });
+});
+document.getElementById('purchForm').addEventListener('submit', function(e) {
+    e.preventDefault(); const id = document.getElementById('purchId').value;
+    $.ajax({ url: id ? '/raw-materials/purchases/edit/' + id : '/raw-materials/purchases/add', method: 'POST', data: $(this).serialize(),
+        success: function(res) { if (res.success) { showAlert('success', res.message); closeModal('purchModal'); loadPurchases(); loadMaterials(); } else showAlert('error', res.message); }
+    });
+});
+document.getElementById('txForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (!validateTxForm()) { showAlert('error', 'Please fix the highlighted fields.'); return; }
+    $.ajax({ url: '/raw-materials/transactions/add', method: 'POST', data: $(this).serialize(),
+        success: function(res) { if (res.success) { showAlert('success', res.message); closeModal('txModal'); loadTransactions(); } else showAlert('error', res.message); }
+    });
+});
+
+loadMaterials();
+</script>
+{% endblock %}

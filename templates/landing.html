@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RM Bricks Suppliers | Brick Manufacturing Management, Reimagined</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <style>
+        :root {
+            --navy: #0b1f33;
+            --navy-2: #123456;
+            --accent: #ff8a3d;
+            --accent-2: #2ec4b6;
+            --ink: #0b1f33;
+        }
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #1b2a3a;
+            background: #05111f;
+            overflow-x: hidden;
+        }
+
+        /* ---------- Animated brick-mosaic background ---------- */
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background:
+                radial-gradient(circle at 15% 20%, rgba(255,138,61,0.25), transparent 40%),
+                radial-gradient(circle at 85% 75%, rgba(46,196,182,0.20), transparent 45%),
+                linear-gradient(135deg, #06121f 0%, #0b1f33 45%, #123456 100%);
+            overflow: hidden;
+        }
+        .brick-field {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, 64px);
+            grid-auto-rows: 32px;
+            opacity: 0.10;
+            transform: rotate(-6deg) scale(1.3);
+            pointer-events: none;
+        }
+        .brick-field div {
+            border: 1px solid rgba(255,255,255,0.5);
+            background: linear-gradient(135deg, rgba(255,138,61,0.4), rgba(46,196,182,0.15));
+        }
+        .brick-field div:nth-child(3n) { background: rgba(255,255,255,0.06); }
+        .brick-field div:nth-child(5n) { background: rgba(255,138,61,0.12); }
+
+        .glow-orb {
+            position: absolute;
+            width: 480px; height: 480px;
+            border-radius: 50%;
+            filter: blur(90px);
+            opacity: 0.35;
+            animation: float 14s ease-in-out infinite;
+        }
+        .glow-orb.one { background: #ff8a3d; top: -120px; left: -100px; }
+        .glow-orb.two { background: #2ec4b6; bottom: -140px; right: -80px; animation-delay: 4s; }
+        @keyframes float {
+            0%, 100% { transform: translate(0,0) scale(1); }
+            50% { transform: translate(40px,-30px) scale(1.08); }
+        }
+
+        /* ---------- Nav ---------- */
+        .nav-bar {
+            position: relative; z-index: 5;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 22px 6vw;
+        }
+        .nav-brand { display: flex; align-items: center; gap: 12px; }
+        .nav-brand img { height: 40px; filter: brightness(0) invert(1); }
+        .nav-brand .rm-name { color: #fff; font-weight: 800; font-size: 18px; letter-spacing: 0.5px; }
+        .nav-brand .rm-sub { color: rgba(255,255,255,0.55); font-size: 12px; }
+        .nav-links { display: flex; align-items: center; gap: 28px; }
+        .nav-links a {
+            color: rgba(255,255,255,0.75);
+            font-size: 14px; font-weight: 600;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: #fff; }
+        @media (max-width: 768px) { .nav-links { display: none; } }
+        .btn-nav-login {
+            background: linear-gradient(135deg, var(--accent), #ff6b1a);
+            color: #fff; font-weight: 700; font-size: 14px;
+            padding: 10px 26px; border-radius: 30px; border: none;
+            text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+            box-shadow: 0 10px 30px rgba(255,138,61,0.35);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .btn-nav-login:hover { transform: translateY(-2px); box-shadow: 0 14px 36px rgba(255,138,61,0.45); color:#fff; }
+
+        /* ---------- Hero content ---------- */
+        .hero-content {
+            position: relative; z-index: 5;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            padding: 40px 6vw 80px;
+        }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(46,196,182,0.12);
+            border: 1px solid rgba(46,196,182,0.4);
+            color: #6fe4d6;
+            font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+            padding: 6px 16px; border-radius: 30px;
+            margin-bottom: 22px;
+        }
+        .hero-content h1 {
+            color: #fff;
+            font-size: clamp(34px, 5vw, 58px);
+            font-weight: 800;
+            line-height: 1.12;
+            max-width: 780px;
+            margin: 0 0 20px;
+        }
+        .hero-content h1 span {
+            background: linear-gradient(90deg, var(--accent), var(--accent-2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .hero-content p.lead {
+            color: rgba(255,255,255,0.72);
+            font-size: 18px;
+            max-width: 620px;
+            margin-bottom: 34px;
+            line-height: 1.6;
+        }
+        .hero-ctas { display: flex; gap: 16px; flex-wrap: wrap; margin-bottom: 56px; }
+        .btn-hero-primary {
+            background: linear-gradient(135deg, var(--accent), #ff6b1a);
+            color: #fff; font-weight: 700; font-size: 16px;
+            padding: 15px 36px; border-radius: 10px; border: none;
+            text-decoration: none; display: inline-flex; align-items: center; gap: 10px;
+            box-shadow: 0 14px 34px rgba(255,138,61,0.4);
+            transition: transform 0.2s;
+        }
+        .btn-hero-primary:hover { transform: translateY(-3px); color: #fff; }
+        .btn-hero-ghost {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.25);
+            color: #fff; font-weight: 600; font-size: 16px;
+            padding: 15px 30px; border-radius: 10px;
+            text-decoration: none; display: inline-flex; align-items: center; gap: 10px;
+            backdrop-filter: blur(6px);
+            transition: background 0.2s;
+        }
+        .btn-hero-ghost:hover { background: rgba(255,255,255,0.14); color: #fff; }
+
+        .hero-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 24px;
+            max-width: 640px;
+        }
+        .hero-stats .stat b {
+            display: block; color: #fff; font-size: 30px; font-weight: 800;
+        }
+        .hero-stats .stat span {
+            color: rgba(255,255,255,0.55); font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+
+        .scroll-cue {
+            position: absolute; bottom: 26px; left: 50%; transform: translateX(-50%);
+            color: rgba(255,255,255,0.5); font-size: 13px; text-align: center; z-index: 5;
+            animation: bob 2s ease-in-out infinite;
+        }
+        @keyframes bob { 0%,100%{transform:translate(-50%,0);} 50%{transform:translate(-50%,8px);} }
+
+        /* ---------- Modules section ---------- */
+        .modules-section {
+            background: #f4f7fb;
+            padding: 90px 6vw;
+        }
+        .section-eyebrow {
+            color: var(--accent); font-weight: 800; letter-spacing: 2px; font-size: 13px;
+            text-transform: uppercase; margin-bottom: 10px; display: block;
+        }
+        .modules-section h2 {
+            font-size: clamp(28px, 3.6vw, 40px);
+            font-weight: 800;
+            color: var(--ink);
+            max-width: 680px;
+            margin-bottom: 18px;
+        }
+        .section-lede {
+            font-size: 16px;
+            color: #5b6b7d;
+            max-width: 680px;
+            line-height: 1.7;
+            margin-bottom: 50px;
+        }
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 24px;
+        }
+        .module-card {
+            background: #fff;
+            border-radius: 18px;
+            padding: 30px 26px;
+            box-shadow: 0 8px 30px rgba(11,31,51,0.06);
+            border: 1px solid #eef1f6;
+            transition: transform 0.25s, box-shadow 0.25s;
+            display: flex;
+            flex-direction: column;
+        }
+        .module-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 20px 45px rgba(11,31,51,0.12);
+        }
+        .module-icon {
+            width: 52px; height: 52px; border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; color: #fff; margin-bottom: 18px;
+        }
+        .module-card h3 { font-size: 18px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+        .module-card > p { font-size: 14px; color: #5b6b7d; line-height: 1.6; margin: 0 0 16px; }
+        .module-features {
+            list-style: none;
+            margin: auto 0 0;
+            padding: 16px 0 0;
+            border-top: 1px dashed #e3e8ef;
+            display: flex;
+            flex-direction: column;
+            gap: 9px;
+        }
+        .module-features li {
+            font-size: 13px;
+            color: #45566b;
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            line-height: 1.5;
+        }
+        .module-features li i {
+            color: var(--accent-2);
+            font-size: 14px;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+
+        /* ---------- How it works ---------- */
+        .flow-section {
+            background: #fff;
+            padding: 90px 6vw;
+        }
+        .flow-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 0;
+            margin-top: 50px;
+            position: relative;
+        }
+        .flow-step {
+            padding: 0 22px;
+            position: relative;
+        }
+        .flow-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 26px; right: -2px;
+            width: 100%;
+            border-top: 2px dashed #d9e2ec;
+            z-index: 0;
+        }
+        @media (max-width: 900px) {
+            .flow-step:not(:last-child)::after { display: none; }
+        }
+        .flow-num {
+            width: 52px; height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent), #ff6b1a);
+            color: #fff;
+            font-weight: 800; font-size: 20px;
+            display: flex; align-items: center; justify-content: center;
+            position: relative; z-index: 1;
+            margin-bottom: 18px;
+            box-shadow: 0 8px 22px rgba(255,138,61,0.35);
+        }
+        .flow-step h4 { font-size: 16px; font-weight: 700; color: var(--ink); margin-bottom: 8px; }
+        .flow-step p { font-size: 14px; color: #5b6b7d; line-height: 1.6; margin: 0; }
+
+        /* ---------- Why section ---------- */
+        .why-section {
+            background: var(--navy);
+            padding: 90px 6vw;
+            color: #fff;
+        }
+        .why-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 40px;
+            margin-top: 50px;
+        }
+        .why-item i {
+            font-size: 30px;
+            color: var(--accent-2);
+            margin-bottom: 16px;
+            display: block;
+        }
+        .why-item h4 { font-size: 17px; font-weight: 700; margin-bottom: 8px; }
+        .why-item p { color: rgba(255,255,255,0.6); font-size: 14px; line-height: 1.6; margin: 0; }
+
+        /* ---------- Final CTA ---------- */
+        .cta-section {
+            background: linear-gradient(135deg, var(--accent) 0%, #ff6b1a 100%);
+            padding: 70px 6vw;
+            text-align: center;
+        }
+        .cta-section h2 { color: #fff; font-weight: 800; font-size: clamp(26px,3.4vw,36px); margin-bottom: 14px; }
+        .cta-section p { color: rgba(255,255,255,0.85); margin-bottom: 30px; }
+        .btn-cta-white {
+            background: #fff; color: var(--accent);
+            font-weight: 800; font-size: 16px;
+            padding: 15px 40px; border-radius: 10px; border: none;
+            text-decoration: none; display: inline-flex; align-items: center; gap: 10px;
+            transition: transform 0.2s;
+        }
+        .btn-cta-white:hover { transform: translateY(-3px); color: var(--accent); }
+
+        .site-footer {
+            background: #06121f;
+            color: rgba(255,255,255,0.45);
+            text-align: center;
+            padding: 24px;
+            font-size: 13px;
+        }
+
+        @media (max-width: 576px) {
+            .hero-ctas { flex-direction: column; }
+            .btn-hero-primary, .btn-hero-ghost { justify-content: center; width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+    <div class="glow-orb one"></div>
+    <div class="glow-orb two"></div>
+    <div class="brick-field" id="brickField"></div>
+
+    <nav class="nav-bar">
+        <div class="nav-brand">
+            <img src="{{ url_for('static', filename='img/dearsoft_logo.png') }}" alt="Dear Soft">
+            <div>
+                <div class="rm-name">RM &nbsp;Bricks Suppliers</div>
+                <div class="rm-sub">by Dear Soft IT Solutions</div>
+            </div>
+        </div>
+        <div class="nav-links">
+            <a href="#modules">Modules</a>
+            <a href="#how-it-works">How It Works</a>
+        </div>
+        <a href="{{ url_for('login') }}" class="btn-nav-login">
+            <i class="bi bi-box-arrow-in-right"></i> Login
+        </a>
+    </nav>
+
+    <div class="hero-content">
+        <div>
+            <span class="hero-badge"><i class="bi bi-stars"></i> End-to-end Brick Kiln Management</span>
+            <h1>Run your entire brick business <span>from one screen.</span></h1>
+            <p class="lead">
+                Employees, production, storage, payroll, vehicles and raw materials — RM brings
+                every moving part of a brick manufacturing operation into one fast, connected system.
+            </p>
+            <div class="hero-ctas">
+                <a href="{{ url_for('login') }}" class="btn-hero-primary">
+                    <i class="bi bi-box-arrow-in-right"></i> Sign In to Your Account
+                </a>
+                <a href="#modules" class="btn-hero-ghost">
+                    <i class="bi bi-grid-3x3-gap"></i> Explore Modules
+                </a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat"><b>6</b><span>Core Modules</span></div>
+                <div class="stat"><b>100%</b><span>Piece-rate Payroll</span></div>
+                <div class="stat"><b>24/7</b><span>Live Stock Tracking</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="scroll-cue"><i class="bi bi-chevron-down"></i><br>Scroll</div>
+</section>
+
+<!-- ============ MODULES ============ -->
+<section class="modules-section" id="modules">
+    <span class="section-eyebrow">What's inside</span>
+    <h2>Six modules, working together like one brick in the wall.</h2>
+    <p class="section-lede">
+        Every part of a brick kiln operation touches every other part — who's on the floor
+        today decides what gets produced, what gets produced decides what's paid, and what's
+        paid depends on what's in stock. RM connects all of it, so nothing has to be
+        re-typed, re-checked or reconciled by hand.
+    </p>
+    <div class="module-grid">
+        <div class="module-card">
+            <div class="module-icon" style="background:linear-gradient(135deg,#2471a3,#1a5276)"><i class="bi bi-people-fill"></i></div>
+            <h3>Employee Management</h3>
+            <p>A single, verified record for every worker on the floor — from onboarding to daily status.</p>
+            <ul class="module-features">
+                <li><i class="bi bi-check-circle-fill"></i>Aadhaar number + card photo, and notarized document upload per employee</li>
+                <li><i class="bi bi-check-circle-fill"></i>Department assignment ties each worker to a piece-rate automatically</li>
+                <li><i class="bi bi-check-circle-fill"></i>Active/Inactive status, searchable and exportable at any time</li>
+            </ul>
+        </div>
+        <div class="module-card">
+            <div class="module-icon" style="background:linear-gradient(135deg,#8e44ad,#5b2c6f)"><i class="bi bi-diagram-3-fill"></i></div>
+            <h3>Department Management</h3>
+            <p>The four roles of a brick line — Maker, Carrier, Converter, Transporter — each configured once.</p>
+            <ul class="module-features">
+                <li><i class="bi bi-check-circle-fill"></i>Brick size (4"/6"/8"/9") set per department</li>
+                <li><i class="bi bi-check-circle-fill"></i>Rate per 100 bricks drives payroll automatically, no manual entry</li>
+                <li><i class="bi bi-check-circle-fill"></i>Live headcount per department at a glance</li>
+            </ul>
+        </div>
+        <div class="module-card">
+            <div class="module-icon" style="background:linear-gradient(135deg,#16a085,#0e6655)"><i class="bi bi-archive-fill"></i></div>
+            <h3>Storage &amp; Production</h3>
+            <p>What's made and what's stored, tracked together instead of in two separate systems.</p>
+            <ul class="module-features">
+                <li><i class="bi bi-check-circle-fill"></i>Daily brick production logged per employee, per set, per brick size</li>
+                <li><i class="bi bi-check-circle-fill"></i>Stock levels and locations update as production happens</li>
+                <li><i class="bi bi-check-circle-fill"></i>Deductions &amp; payments to suppliers tracked with reminder alerts</li>
+            </ul>
+        </div>
+        <div class="module-card">
+            <div class="module-icon" style="background:linear-gradient(135deg,#ff8a3d,#e67e22)"><i class="bi bi-cash-coin"></i></div>
+            <h3>Payroll System</h3>
+            <p>Salaries calculated the way brick kilns actually pay — by output, not by the clock.</p>
+            <ul class="module-features">
+                <li><i class="bi bi-check-circle-fill"></i>Generate payroll directly from a month's production records</li>
+                <li><i class="bi bi-check-circle-fill"></i>Advances tracked and auto-deducted from the next payout</li>
+                <li><i class="bi bi-check-circle-fill"></i>Printable salary slips with full production &amp; payment breakdown</li>
+            </ul>
+        </div>
+        <div class="module-card">
+            <div class="module-icon" style="background:linear-gradient(135deg,#c0392b,#922b21)"><i class="bi bi-truck-front-fill"></i></div>
+            <h3>Vehicle Management</h3>
+            <p>Every truck, driver and trip — plus the paperwork that keeps them road-legal.</p>
+            <ul class="module-features">
+                <li><i class="bi bi-check-circle-fill"></i>Insurance, road tax and PUC status per vehicle, in one view</li>
+                <li><i class="bi bi-check-circle-fill"></i>Driver licensing and Aadhaar verification built in</li>
+                <li><i class="bi bi-check-circle-fill"></i>Trip logs and maintenance history, fully searchable</li>
+            </ul>
+        </div>
+        <div class="module-card">
+            <div class="module-icon" style="background:linear-gradient(135deg,#2ec4b6,#1b9d92)"><i class="bi bi-boxes"></i></div>
+            <h3>Raw Materials</h3>
+            <p>The supply side of the kiln — who you buy from, what you bought, and what's left.</p>
+            <ul class="module-features">
+                <li><i class="bi bi-check-circle-fill"></i>Supplier directory with a searchable, always-current picker</li>
+                <li><i class="bi bi-check-circle-fill"></i>Purchases automatically update material stock on save</li>
+                <li><i class="bi bi-check-circle-fill"></i>Payment transactions by method — Online, Cash, RTGS, Cheque</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- ============ HOW IT WORKS ============ -->
+<section class="flow-section" id="how-it-works">
+    <span class="section-eyebrow">From the floor to the payslip</span>
+    <h2>How a single day flows through RM.</h2>
+    <p class="section-lede">
+        This is the actual path one day of work takes through the system — no separate
+        spreadsheets, no re-entering the same numbers twice.
+    </p>
+    <div class="flow-steps">
+        <div class="flow-step">
+            <div class="flow-num">1</div>
+            <h4>Log attendance &amp; production</h4>
+            <p>Each worker's output for the day is recorded against their department and set.</p>
+        </div>
+        <div class="flow-step">
+            <div class="flow-num">2</div>
+            <h4>Stock updates itself</h4>
+            <p>Finished bricks and raw materials reflect the day's activity automatically.</p>
+        </div>
+        <div class="flow-step">
+            <div class="flow-num">3</div>
+            <h4>Payroll pulls from production</h4>
+            <p>At month end, salaries are generated straight from the logged output — no re-typing.</p>
+        </div>
+        <div class="flow-step">
+            <div class="flow-num">4</div>
+            <h4>Everything is reportable</h4>
+            <p>Any table — employees, stock, payroll, vehicles — exports in one click, anytime.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ============ WHY ============ -->
+<section class="why-section">
+    <span class="section-eyebrow">Built for the kiln floor</span>
+    <h2 style="font-size:clamp(26px,3.4vw,36px); font-weight:800; max-width:640px; margin-bottom:16px;">Made for how brick businesses actually run.</h2>
+    <p style="color:rgba(255,255,255,0.6); font-size:16px; max-width:640px; line-height:1.7; margin-bottom:0;">
+        Most software forces a brick kiln's day-to-day into someone else's workflow. RM was built
+        the other way around — starting from how production, payroll and stock actually move on
+        a real kiln floor, then wrapping the software around that.
+    </p>
+    <div class="why-grid">
+        <div class="why-item">
+            <i class="bi bi-lightning-charge-fill"></i>
+            <h4>Fast, AJAX-first UI</h4>
+            <p>No page reloads. Every list, form and search updates instantly, even on a slow connection.</p>
+        </div>
+        <div class="why-item">
+            <i class="bi bi-shield-lock-fill"></i>
+            <h4>Role-based access</h4>
+            <p>Secure sessions and controlled logins keep employee, payroll and financial data locked down.</p>
+        </div>
+        <div class="why-item">
+            <i class="bi bi-download"></i>
+            <h4>Export anything</h4>
+            <p>Every table exports to JSON, XML, CSV, TXT, SQL, Excel or PDF — one click, no add-ons.</p>
+        </div>
+        <div class="why-item">
+            <i class="bi bi-graph-up-arrow"></i>
+            <h4>Built to scale</h4>
+            <p>From a single kiln to a multi-site operation, the same six modules grow with the business.</p>
+        </div>
+        <div class="why-item">
+            <i class="bi bi-diagram-3-fill"></i>
+            <h4>One source of truth</h4>
+            <p>Production, stock and payroll read from the same records — nothing drifts out of sync.</p>
+        </div>
+        <div class="why-item">
+            <i class="bi bi-headset"></i>
+            <h4>Backed by Dear Soft</h4>
+            <p>Built and supported by Dear Soft IT Solutions, with the whole system tailored to your operation.</p>
+        </div>
+    </div>
+</section>
+
+<!-- ============ CTA ============ -->
+<section class="cta-section">
+    <h2>Ready to get to work?</h2>
+    <p>Sign in with your RM account to reach your dashboard — employees, production,<br class="d-none d-md-block"> payroll, vehicles and materials, all one click away.</p>
+    <a href="{{ url_for('login') }}" class="btn-cta-white">
+        <i class="bi bi-box-arrow-in-right"></i> Login Now
+    </a>
+</section>
+
+<footer class="site-footer">
+    &copy; 2026 Dear Soft IT Solutions &nbsp;|&nbsp; RM Bricks Suppliers
+</footer>
+
+<script>
+    // Build the subtle animated brick-mosaic backdrop
+    (function(){
+        const field = document.getElementById('brickField');
+        const cols = Math.ceil(window.innerWidth / 64) + 4;
+        const rows = Math.ceil(window.innerHeight / 32) + 4;
+        const total = cols * rows;
+        let html = '';
+        for (let i = 0; i < total; i++) html += '<div></div>';
+        field.innerHTML = html;
+    })();
+</script>
+</body>
+</html>

@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %}Dear Soft IT Solutions{% endblock %}
+{% block content %}
+<div class="page-title-bar">
+    <h5><i class="bi bi-diagram-3-fill"></i> Department Management</h5>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="/" style="font-size:12px">Dashboard</a></li>
+        <li class="breadcrumb-item active" style="font-size:12px">Departments</li>
+    </ol></nav>
+</div>
+<div class="panel">
+    <div class="panel-head">
+        <h6><i class="bi bi-diagram-3-fill"></i> All Departments</h6>
+        <div class="d-flex gap-2 align-items-center">
+            <span id="dept-search-wrap"></span>
+            <span id="dept-export-wrap"></span>
+            <button class="btn-bms-primary" onclick="openAddModal()"><i class="bi bi-plus-circle"></i> Add Department</button>
+        </div>
+    </div>
+    <div class="table-responsive">
+        <table class="bms-table" id="deptTable">
+            <thead><tr><th>Sr.No</th><th>Dept Name</th><th>Brick Size</th><th>Rate/100</th><th>Employees</th><th>Edit</th><th>Delete</th></tr></thead>
+            <tbody id="deptTableBody"><tr><td colspan="7" class="loading-spinner"><span class="spinner-border spinner-border-sm"></span> Loading...</td></tr></tbody>
+        </table>
+    </div>
+    <div id="dept-pager"></div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal fade" id="deptModal" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="deptModalTitle"><i class="bi bi-plus-circle me-2"></i>Add Department</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+            <form id="deptForm"><input type="hidden" id="deptId">
+                <div class="mb-3">
+                    <label class="form-label">Department Name *</label>
+                    <input type="text" class="form-control" name="name" id="deptNameInput" required>
+                    <div class="invalid-feedback">Department Name is required.</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Brick Size *</label>
+                    <select class="form-select" name="brick_size" id="deptBrickSizeInput" required>
+                        <option value="">-- Select Brick Size --</option>
+                        <option value="4 Inch">4 Inch</option>
+                        <option value="6 Inch">6 Inch</option>
+                        <option value="8 Inch">8 Inch</option>
+                        <option value="9 Inch">9 Inch</option>
+                    </select>
+                    <div class="invalid-feedback">Brick Size must be selected from the dropdown list.</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Rate per 100 Bricks (Rs.) *</label>
+                    <input type="number" class="form-control" name="rate_per_100" id="deptRateInput" step="0.01" placeholder="0.00" required>
+                    <div class="invalid-feedback">Rate per 100 Bricks must be a valid numeric value.</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" name="description" id="deptDescInput" rows="3"></textarea>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+            <button type="submit" form="deptForm" class="btn-bms-primary"><i class="bi bi-save"></i> Save</button>
+        </div>
+    </div></div>
+</div>
+
+<!-- DEPT EMPLOYEES MODAL -->
+<div class="modal fade" id="deptEmpModal" tabindex="-1">
+    <div class="modal-dialog modal-lg"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title"><i class="bi bi-people me-2"></i>Department Employees</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">
+            <div class="table-responsive"><table class="bms-table">
+                <thead><tr><th>Sr.No</th><th>Name</th><th>Designation</th><th>Status</th></tr></thead>
+                <tbody id="deptEmpBody"></tbody>
+            </table></div>
+        </div>
+    </div></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function loadDepartments(){
+    tableLoading('deptTableBody',7);
+    $.get('/departments/data',function(data){
+        document.getElementById('dept-search-wrap').innerHTML=searchBar('dept','Search...');
+        document.getElementById('dept-export-wrap').innerHTML=exportBar('dept','departments','deptTable');
+        document.getElementById('dept-pager').innerHTML=pagerBar('dept');
+        BmsPager.init('dept',data,function(slice,offset){
+            if(!slice.length){tableEmpty('deptTableBody',7);return;}
+            let html='';
+            slice.forEach((d,i)=>html+=`<tr>
+                <td>${offset+i+1}</td>
+                <td><strong>${d.name}</strong></td>
+                <td>${d.brick_size?'<span class="badge bg-info text-dark">'+d.brick_size+'</span>':'<em class="text-muted">--</em>'}</td>
+                <td>${d.rate_per_100?'Rs. '+parseFloat(d.rate_per_100).toLocaleString():'--'}</td>
+                <td><span class="badge bg-secondary">${d.employee_count||0}</span> <button class="btn-action btn-view ms-1" onclick="viewEmployees(${d.id})"><i class="bi bi-eye"></i></button></td>
+                <td>${editBtn('openEditModal('+d.id+')')}</td>
+                <td>${deleteBtn('deleteDept('+d.id+')')}</td>
+            </tr>`);
+            document.getElementById('deptTableBody').innerHTML=html;
+        },{perPage:25});
+    });
+}
+function clearDeptValidation(){
+    document.getElementById('deptForm').querySelectorAll('.is-invalid').forEach(el=>el.classList.remove('is-invalid'));
+}
+function validateDeptForm(){
+    clearDeptValidation();
+    let valid = true;
+    const markInvalid = id => { document.getElementById(id).classList.add('is-invalid'); valid = false; };
+
+    if (!document.getElementById('deptNameInput').value.trim()) markInvalid('deptNameInput');
+    if (!document.getElementById('deptBrickSizeInput').value) markInvalid('deptBrickSizeInput');
+
+    const rate = document.getElementById('deptRateInput').value.trim();
+    if (rate === '' || isNaN(parseFloat(rate))) markInvalid('deptRateInput');
+
+    return valid;
+}
+function openAddModal(){
+    document.getElementById('deptModalTitle').innerHTML='<i class="bi bi-plus-circle me-2"></i>Add Department';
+    document.getElementById('deptForm').reset();
+    document.getElementById('deptId').value='';
+    clearDeptValidation();
+    openModal('deptModal');
+}
+function openEditModal(id){
+    document.getElementById('deptModalTitle').innerHTML='<i class="bi bi-pencil-square me-2"></i>Edit Department';
+    $.get('/departments/get/'+id,function(data){
+        document.getElementById('deptId').value=id;
+        const f=document.getElementById('deptForm');
+        f.querySelector('[name="name"]').value=data.name||'';
+        f.querySelector('[name="description"]').value=data.description||'';
+        f.querySelector('[name="rate_per_100"]').value=data.rate_per_100||'';
+        f.querySelector('[name="brick_size"]').value=data.brick_size||'';
+        clearDeptValidation();
+        openModal('deptModal');
+    });
+}
+function viewEmployees(id){
+    $.get('/departments/'+id+'/employees',function(data){
+        if(!data.length) tableEmpty('deptEmpBody',4,'No employees');
+        else {
+            let html='';
+            data.forEach((e,i)=>html+=`<tr><td>${i+1}</td><td>${e.name}</td><td>${e.designation||'--'}</td><td>${statusBadge(e.status)}</td></tr>`);
+            document.getElementById('deptEmpBody').innerHTML=html;
+        }
+        openModal('deptEmpModal');
+    });
+}
+function deleteDept(id){ confirmDelete('/departments/delete/'+id,loadDepartments); }
+$('#deptForm').on('submit',function(e){
+    e.preventDefault();
+    if (!validateDeptForm()) {
+        showAlert('error', 'Please fix the highlighted fields.');
+        return;
+    }
+    const id=document.getElementById('deptId').value;
+    $.ajax({url:id?'/departments/edit/'+id:'/departments/add',method:'POST',data:$(this).serialize(),
+        success:function(res){ showAlert(res.success?'success':'error',res.message); if(res.success){closeModal('deptModal');loadDepartments();} }
+    });
+});
+loadDepartments();
+</script>
+{% endblock %}

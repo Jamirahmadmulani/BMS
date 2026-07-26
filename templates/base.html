@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Dear Soft IT Solutions{% endblock %}</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+
+<!-- ===== TOP HEADER BAR ===== -->
+<div class="top-header">
+    <div class="top-header-brand">
+        <div class="header-company-brand">
+            <img src="{{ url_for('static', filename='img/dearsoft_logo.png') }}" alt="Dear Soft IT Solutions" class="company-logo">
+        </div>
+        <div class="header-divider"></div>
+        <i class="bi bi-bricks brand-icon"></i>
+        <span class="brand-name">RM</span>
+        <span class="brand-sub">Bricks Suppliers</span>
+    </div>
+    <div class="top-header-right">
+        <span class="welcome-text">
+            <i class="bi bi-person-circle me-1"></i> Welcome, <strong>{{ session.get('user_name', 'Admin') }}</strong>
+        </span>
+        <span class="online-dot"><i class="bi bi-circle-fill"></i> Online</span>
+        <a href="{{ url_for('logout') }}" class="logout-btn">
+            <i class="bi bi-box-arrow-right me-1"></i>Logout
+        </a>
+    </div>
+</div>
+
+<!-- ===== HORIZONTAL NAVBAR ===== -->
+<nav class="main-navbar navbar navbar-expand-lg">
+    <div class="container-fluid px-3">
+        <a class="navbar-brand d-lg-none" href="{{ url_for('index') }}">
+            <i class="bi bi-house-fill"></i>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+            <i class="bi bi-list text-white fs-4"></i>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainNav">
+            <ul class="navbar-nav me-auto">
+
+                <!-- Dashboard -->
+                <li class="nav-item">
+                    <a class="nav-link {% if request.endpoint == 'index' %}active{% endif %}"
+                       href="{{ url_for('index') }}">
+                        <i class="bi bi-house-fill me-1"></i>
+                    </a>
+                </li>
+
+                <!-- Employees -->
+                <li class="nav-item">
+                    <a class="nav-link {% if request.blueprint == 'employees' %}active{% endif %}"
+                       href="{{ url_for('employees.index') }}">
+                        <i class="bi bi-people-fill me-1"></i> Employees
+                    </a>
+                </li>
+
+                <!-- Departments -->
+                <li class="nav-item">
+                    <a class="nav-link {% if request.blueprint == 'departments' %}active{% endif %}"
+                       href="{{ url_for('departments.index') }}">
+                        <i class="bi bi-diagram-3-fill me-1"></i> Departments
+                    </a>
+                </li>
+
+                <!-- Storage dropdown -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle {% if request.blueprint == 'storage' %}active{% endif %}"
+                       href="#" data-bs-toggle="dropdown">
+                        <i class="bi bi-archive-fill me-1"></i> Storage
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('storage.index') }}#stock">
+                            <i class="bi bi-boxes me-2"></i>Stock Items
+                        </a></li>
+                    </ul>
+                </li>
+
+                <!-- Payroll dropdown -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle {% if request.blueprint == 'payroll' %}active{% endif %}"
+                       href="#" data-bs-toggle="dropdown">
+                        <i class="bi bi-cash-coin me-1"></i> Payroll
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('payroll.index') }}">
+                            <i class="bi bi-receipt me-2"></i>Salary Records
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('payroll.index') }}#advance">
+                            <i class="bi bi-cash me-2"></i>Advance Salary
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('payroll.index') }}#weekly">
+                            <i class="bi bi-calendar-week me-2"></i>Weekly Salary
+                        </a></li>
+                    </ul>
+                </li>
+
+                <!-- Vehicles dropdown -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle {% if request.blueprint == 'vehicles' %}active{% endif %}"
+                       href="#" data-bs-toggle="dropdown">
+                        <i class="bi bi-truck-front-fill me-1"></i> Vehicles
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('vehicles.index') }}">
+                            <i class="bi bi-truck me-2"></i>Vehicle List
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('vehicles.index') }}#drivers">
+                            <i class="bi bi-person-badge me-2"></i>Drivers
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('vehicles.index') }}#trips">
+                            <i class="bi bi-map me-2"></i>Trips
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('vehicles.index') }}#maintenance">
+                            <i class="bi bi-tools me-2"></i>Maintenance
+                        </a></li>
+                    </ul>
+                </li>
+
+                <!-- Raw Materials dropdown -->
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle {% if request.blueprint == 'raw_materials' %}active{% endif %}"
+                       href="#" data-bs-toggle="dropdown">
+                        <i class="bi bi-boxes me-1"></i> Raw Materials
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ url_for('raw_materials.index') }}">
+                            <i class="bi bi-list-ul me-2"></i>Materials
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('raw_materials.index') }}#suppliers">
+                            <i class="bi bi-shop me-2"></i>Suppliers
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('raw_materials.index') }}#purchases">
+                            <i class="bi bi-cart3 me-2"></i>Purchases
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ url_for('raw_materials.index') }}#stock">
+                            <i class="bi bi-bar-chart-fill me-2"></i>Stock
+                        </a></li>
+                    </ul>
+                </li>
+
+            </ul>
+
+            <!-- Right side -->
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <span class="nav-link text-white-50 small">
+                        <i class="bi bi-calendar3 me-1"></i>
+                        <span id="navbarDate"></span>
+                    </span>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- ===== PAGE CONTENT ===== -->
+<div class="page-wrapper">
+    {% block content %}{% endblock %}
+</div>
+
+<!-- ===== FOOTER ===== -->
+<div class="page-footer">
+    <span>RM - Bricks Suppliers &copy; 2026</span>
+    <span class="ms-auto text-muted">Powered by Dear Soft IT Solutions</span>
+</div>
+
+<!-- Alert Container -->
+<div class="alert-container" id="alertContainer"></div>
+
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+<script>
+    // Set date in navbar
+    const d = new Date();
+    const opts = {day:'2-digit', month:'short', year:'numeric'};
+    document.getElementById('navbarDate').textContent = d.toLocaleDateString('en-GB', opts);
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

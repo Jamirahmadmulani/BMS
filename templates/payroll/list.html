@@ -1,0 +1,370 @@
+{% extends "base.html" %}
+{% block title %}Dear Soft IT Solutions{% endblock %}
+{% block content %}
+<div class="page-title-bar">
+    <h5><i class="bi bi-cash-coin"></i> Payroll System</h5>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="/" style="font-size:12px">Dashboard</a></li>
+        <li class="breadcrumb-item active" style="font-size:12px">Payroll</li>
+    </ol></nav>
+</div>
+<div class="panel">
+    <div class="panel-head">
+        <h6><i class="bi bi-cash-coin"></i> Payroll Records</h6>
+        <div class="d-flex gap-2 align-items-center">
+            <span id="pay-search-wrap"></span>
+            <span id="pay-export-wrap"></span>
+            <button class="btn-bms-orange" onclick="openGenPayModal()"><i class="bi bi-bricks"></i> From Production</button>
+            <button class="btn-bms-primary" onclick="openAddModal()"><i class="bi bi-plus-circle"></i> Add Record</button>
+        </div>
+    </div>
+    <div class="table-responsive"><table class="bms-table" id="payrollTable">
+        <thead><tr>
+            <th>Sr.No</th><th>Employee</th><th>Department</th><th>Month/Year</th>
+            <th>Total Bricks</th><th>Rate/100</th><th>Calc Salary</th>
+            <th>Advance</th><th>Status</th><th>Slip</th><th>Mark Paid</th><th>Edit</th><th>Delete</th>
+        </tr></thead>
+        <tbody id="payrollTableBody"><tr><td colspan="13" class="loading-spinner"><span class="spinner-border spinner-border-sm"></span> Loading...</td></tr></tbody>
+    </table></div>
+    <div id="pay-pager"></div>
+</div>
+
+<!-- ADD/EDIT MODAL -->
+<div class="modal fade" id="payrollModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title" id="payrollModalTitle"><i class="bi bi-plus-circle me-2"></i>Add Payroll Record</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body"><form id="payrollForm"><input type="hidden" id="payrollId">
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label">Employee Name *</label>
+                <select class="form-select" name="employee_id" id="payEmpSelect" required onchange="onEmpChange(this)">
+                    <option value="">-- Select Employee --</option>
+                </select>
+                <div class="invalid-feedback">Employee Name is mandatory.</div>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Month *</label>
+                <select class="form-select" name="month" id="payMonthSelect" required onchange="onMonthYearChange()">
+                    <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+                    <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+                    <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+                    <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+                </select>
+                <div class="invalid-feedback">Month is mandatory.</div>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Year *</label>
+                <input type="number" class="form-control" name="year" id="payYearInput" value="2026" required onchange="onMonthYearChange()">
+                <div class="invalid-feedback">Year is mandatory.</div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">Department Name</label>
+                <input type="text" class="form-control bg-light" id="payDeptNameDisplay" readonly placeholder="-- Auto-filled from Employee --">
+            </div>
+            <div class="col-md-6"><label class="form-label">Total Bricks</label><input type="number" class="form-control bg-light" name="total_bricks" id="payTotalBricks" readonly value="0"></div>
+            <div class="col-md-4"><label class="form-label">Rate per 100 (Rs.)</label><input type="number" class="form-control bg-light" name="rate_per_100" id="payRate100" readonly step="0.01" value="0"></div>
+            <div class="col-md-4"><label class="form-label">Calculated Salary (Rs.)</label><input type="number" class="form-control bg-light" id="calcSalaryDisplay" readonly step="0.01"></div>
+            <div class="col-md-4"><label class="form-label">Advance (Rs.)</label><input type="number" class="form-control bg-light" name="advance_amount" id="payAdvanceDisplay" readonly step="0.01" value="0"></div>
+            <div class="col-md-4">
+                <label class="form-label">Payment Type *</label>
+                <select class="form-select" name="payment_type" required>
+                    <option value="monthly">Monthly</option><option value="weekly">Weekly</option><option value="advance">Advance</option>
+                </select>
+                <div class="invalid-feedback">Payment Type is mandatory.</div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Status *</label>
+                <select class="form-select" name="status" required><option value="pending">Pending</option><option value="paid">Paid</option></select>
+                <div class="invalid-feedback">Status is mandatory.</div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Payment Date *</label>
+                <input type="date" class="form-control" name="payment_date" id="payDateInput" required>
+                <div class="invalid-feedback">Payment Date is mandatory.</div>
+            </div>
+            <div class="col-12"><label class="form-label">Notes</label><textarea class="form-control" name="notes" rows="2"></textarea></div>
+        </div>
+    </form></div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" form="payrollForm" class="btn-bms-primary"><i class="bi bi-save"></i> Save</button>
+    </div>
+</div></div></div>
+
+<!-- GENERATE FROM PRODUCTION MODAL -->
+<div class="modal fade" id="genPayModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header">
+        <h5 class="modal-title"><i class="bi bi-bricks me-2"></i>Generate Payment from Production</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    </div>
+    <div class="modal-body"><form id="genPayForm">
+        <div class="mb-3"><label class="form-label">Employee *</label>
+            <select class="form-select" name="employee_id" id="genPayEmpSelect" required onchange="loadProdSummary()">
+                <option value="">-- Select Employee --</option>
+            </select>
+        </div>
+        <div class="row g-3">
+            <div class="col-6"><label class="form-label">Month *</label>
+                <select class="form-select" name="month" required onchange="loadProdSummary()">
+                    <option value="1">January</option><option value="2">February</option><option value="3">March</option>
+                    <option value="4">April</option><option value="5">May</option><option value="6">June</option>
+                    <option value="7">July</option><option value="8">August</option><option value="9">September</option>
+                    <option value="10">October</option><option value="11">November</option><option value="12">December</option>
+                </select>
+            </div>
+            <div class="col-6"><label class="form-label">Year *</label>
+                <input type="number" class="form-control" name="year" value="2026" required onchange="loadProdSummary()">
+            </div>
+        </div>
+        <div id="prodSummaryBox" class="mt-3" style="display:none">
+            <div class="alert alert-info py-2 mb-2">
+                <i class="bi bi-info-circle me-1"></i>
+                Total Bricks: <strong id="summBricks">0</strong> &nbsp;|&nbsp;
+                Rate/100: <strong id="summRate">0</strong> &nbsp;|&nbsp;
+                Salary: <strong id="summSalary">Rs. 0</strong>
+            </div>
+        </div>
+        <div class="mb-3 mt-2"><label class="form-label">Payment Date</label><input type="date" class="form-control" name="payment_date"></div>
+    </form></div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" form="genPayForm" class="btn-bms-primary"><i class="bi bi-save"></i> Generate</button>
+    </div>
+</div></div></div>
+
+<!-- SALARY SLIP MODAL -->
+<div class="modal fade" id="slipModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title"><i class="bi bi-receipt me-2"></i>Salary Slip</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body" id="slipContent"></div>
+    <div class="modal-footer no-print">
+        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+        <button onclick="window.print()" class="btn-bms-primary"><i class="bi bi-printer"></i> Print</button>
+    </div>
+</div></div></div>
+{% endblock %}
+{% block scripts %}
+<script>
+const MONTHS=['','January','February','March','April','May','June','July','August','September','October','November','December'];
+let _empRateMap = {};
+
+function calcPayroll(){
+    const bricks = parseInt(document.getElementById('payTotalBricks').value)||0;
+    const rate = parseFloat(document.getElementById('payRate100').value)||0;
+    const calc = (bricks/100)*rate;
+    document.getElementById('calcSalaryDisplay').value = calc.toFixed(2);
+}
+
+function onEmpChange(sel){
+    const empId = sel.value;
+    if(empId && _empRateMap[empId]){
+        const info = _empRateMap[empId];
+        document.getElementById('payDeptNameDisplay').value = info.department_name || '';
+    } else {
+        document.getElementById('payDeptNameDisplay').value = '';
+    }
+    refreshPayrollSummary();
+}
+
+function onMonthYearChange(){
+    refreshPayrollSummary();
+}
+
+function refreshPayrollSummary(){
+    const empId = document.getElementById('payEmpSelect').value;
+    const month = document.getElementById('payMonthSelect').value;
+    const year = document.getElementById('payYearInput').value;
+    if(!empId || !month || !year) return;
+    $.get('/payroll/production-summary',{employee_id:empId,month,year},function(res){
+        document.getElementById('payTotalBricks').value = res.total_bricks || 0;
+        document.getElementById('payRate100').value = res.rate_per_100 || 0;
+        document.getElementById('payAdvanceDisplay').value = res.advance_amount || 0;
+        if(res.department_name) document.getElementById('payDeptNameDisplay').value = res.department_name;
+        calcPayroll();
+    });
+}
+
+function loadPayroll(){
+    tableLoading('payrollTableBody',13);
+    $.get('/payroll/data',function(data){
+        document.getElementById('pay-search-wrap').innerHTML=searchBar('pay','Search employee...');
+        document.getElementById('pay-export-wrap').innerHTML=exportBar('pay','payroll','payrollTable');
+        document.getElementById('pay-pager').innerHTML=pagerBar('pay');
+        BmsPager.init('pay',data,function(slice,offset){
+            if(!slice.length){tableEmpty('payrollTableBody',13);return;}
+            let html='';
+            slice.forEach((p,i)=>html+=`<tr>
+                <td>${offset+i+1}</td>
+                <td><strong>${p.employee_name}</strong></td>
+                <td>${p.department_name||'--'}</td>
+                <td>${MONTHS[p.month]} ${p.year}</td>
+                <td>${p.total_bricks?parseInt(p.total_bricks).toLocaleString():'--'}</td>
+                <td>${p.rate_per_100?'Rs. '+parseFloat(p.rate_per_100).toLocaleString():'--'}</td>
+                <td>${fmtCurrency(p.calculated_salary||p.basic_salary)}</td>
+                <td>${fmtCurrency(p.advance_amount)}</td>
+                <td>${statusBadge(p.status)}</td>
+                <td><button class="btn-action btn-view" onclick="viewSlip(${p.id})"><i class="bi bi-receipt"></i></button></td>
+                <td>${p.status==='pending'?`<button class="btn-action btn-edit" title="Mark Paid" onclick="markPaid(${p.id})"><i class="bi bi-check-circle"></i></button>`:''}</td>
+                <td>${editBtn('openEditModal('+p.id+')')}</td>
+                <td>${deleteBtn('deletePay('+p.id+')')}</td>
+            </tr>`);
+            document.getElementById('payrollTableBody').innerHTML=html;
+        },{perPage:25});
+    });
+}
+
+function loadEmpSelect(){
+    $.get('/payroll/employees-list',function(data){
+        _empRateMap={};
+        const sel=document.getElementById('payEmpSelect');
+        sel.innerHTML='<option value="">-- Select Employee --</option>';
+        data.forEach(e=>{
+            _empRateMap[e.id]={rate_per_100:e.rate_per_100, department_name:e.department_name};
+            sel.innerHTML+=`<option value="${e.id}">${e.name} - ${e.designation||'N/A'}</option>`;
+        });
+    });
+}
+
+function clearPayrollValidation(){
+    document.getElementById('payrollForm').querySelectorAll('.is-invalid').forEach(el=>el.classList.remove('is-invalid'));
+}
+function validatePayrollForm(){
+    clearPayrollValidation();
+    let valid = true;
+    const markInvalid = id => { document.getElementById(id).classList.add('is-invalid'); valid = false; };
+
+    if (!document.getElementById('payEmpSelect').value) markInvalid('payEmpSelect');
+    if (!document.getElementById('payMonthSelect').value) markInvalid('payMonthSelect');
+    if (!document.getElementById('payYearInput').value) markInvalid('payYearInput');
+    if (!document.getElementById('payDateInput').value) markInvalid('payDateInput');
+    const f = document.getElementById('payrollForm');
+    if (!f.querySelector('[name="payment_type"]').value) markInvalid('payrollForm');
+    if (!f.querySelector('[name="status"]').value) markInvalid('payrollForm');
+
+    return valid;
+}
+
+function openAddModal(){
+    document.getElementById('payrollModalTitle').innerHTML='<i class="bi bi-plus-circle me-2"></i>Add Payroll Record';
+    document.getElementById('payrollForm').reset();
+    document.getElementById('payrollId').value='';
+    document.getElementById('calcSalaryDisplay').value='';
+    document.getElementById('payDeptNameDisplay').value='';
+    document.getElementById('payTotalBricks').value='0';
+    document.getElementById('payRate100').value='0';
+    document.getElementById('payAdvanceDisplay').value='0';
+    clearPayrollValidation();
+    loadEmpSelect();
+    openModal('payrollModal');
+}
+function openEditModal(id){
+    document.getElementById('payrollModalTitle').innerHTML='<i class="bi bi-pencil-square me-2"></i>Edit Payroll';
+    loadEmpSelect();
+    clearPayrollValidation();
+    $.get('/payroll/get/'+id,function(data){
+        document.getElementById('payrollId').value=id;
+        const f=document.getElementById('payrollForm');
+        ['month','year','payment_type','status','notes'].forEach(k=>{
+            const el=f.querySelector('[name="'+k+'"]'); if(el) el.value=data[k]||'';
+        });
+        f.querySelector('[name="payment_date"]').value=data.payment_date||'';
+        document.getElementById('payTotalBricks').value=data.total_bricks||0;
+        document.getElementById('payRate100').value=data.rate_per_100||0;
+        document.getElementById('payAdvanceDisplay').value=data.advance_amount||0;
+        document.getElementById('payDeptNameDisplay').value=data.department_name||'';
+        document.getElementById('calcSalaryDisplay').value=data.calculated_salary||data.basic_salary||0;
+        setTimeout(()=>{document.getElementById('payEmpSelect').value=data.employee_id;},300);
+        openModal('payrollModal');
+    });
+}
+function viewSlip(id){
+    $.get('/payroll/slip/'+id,function(data){
+        const calcSalary = parseFloat(data.calculated_salary||data.basic_salary||0);
+        const totalAdvance = parseFloat(data.advance_amount||0);
+        const currentPayment = calcSalary - totalAdvance;
+        document.getElementById('slipContent').innerHTML=`
+        <div class="salary-slip">
+            <div class="salary-slip-header">
+                <h4 style="margin:0">BRICKS MANAGEMENT SYSTEM</h4>
+                <p style="margin:4px 0 0;opacity:0.8">Salary Slip - ${MONTHS[data.month]} ${data.year}</p>
+            </div>
+            <div class="salary-slip-body">
+                <div class="row mb-3">
+                    <div class="col-6">
+                        <div class="slip-row"><span>Employee Name:</span><strong>${data.employee_name}</strong></div>
+                        <div class="slip-row"><span>Date:</span><span>${fmtDate(new Date().toISOString())}</span></div>
+                        <div class="slip-row"><span>Department:</span><span>${data.department_name||'--'}</span></div>
+                        <div class="slip-row"><span>Department Type:</span><span>${data.department_type||'--'}</span></div>
+                    </div>
+                    <div class="col-6">
+                        <div class="slip-row"><span>Payment Mode:</span><span>${data.payment_type}</span></div>
+                        <div class="slip-row"><span>Payment Date:</span><span>${fmtDate(data.payment_date)}</span></div>
+                    </div>
+                </div>
+                <hr>
+                <div class="slip-row"><span>Total Bricks:</span><span>${data.total_bricks?parseInt(data.total_bricks).toLocaleString():'--'}</span></div>
+                <div class="slip-row"><span>Rate per 100 (Rs.):</span><span>Rs. ${data.rate_per_100||0}</span></div>
+                <div class="slip-row"><span>Calculated Salary:</span><strong>${fmtCurrency(calcSalary)}</strong></div>
+                <div class="slip-row"><span>Total Advance:</span><span style="color:#c0392b">- ${fmtCurrency(totalAdvance)}</span></div>
+                ${data.notes?`<div class="slip-row"><span>Notes:</span><span>${data.notes}</span></div>`:''}
+            </div>
+            <div class="slip-total"><span>CURRENT PAYMENT</span><span>${fmtCurrency(currentPayment)}</span></div>
+        </div>`;
+        openModal('slipModal');
+    });
+}
+function openGenPayModal(){
+    document.getElementById('genPayForm').reset();
+    document.getElementById('prodSummaryBox').style.display='none';
+    $.get('/payroll/employees-list',function(data){
+        const sel=document.getElementById('genPayEmpSelect');
+        sel.innerHTML='<option value="">-- Select Employee --</option>';
+        data.forEach(e=>sel.innerHTML+=`<option value="${e.id}">${e.name}</option>`);
+    });
+    openModal('genPayModal');
+}
+function loadProdSummary(){
+    const empId=document.getElementById('genPayEmpSelect').value;
+    const month=document.getElementById('genPayForm').querySelector('[name="month"]').value;
+    const year=document.getElementById('genPayForm').querySelector('[name="year"]').value;
+    if(!empId||!month||!year){document.getElementById('prodSummaryBox').style.display='none';return;}
+    $.get('/payroll/production-summary',{employee_id:empId,month,year},function(res){
+        if(res.total_bricks>0){
+            document.getElementById('summBricks').textContent=parseInt(res.total_bricks).toLocaleString();
+            document.getElementById('summRate').textContent='Rs. '+res.rate_per_100;
+            document.getElementById('summSalary').textContent='Rs. '+parseFloat(res.calculated_salary).toLocaleString();
+            document.getElementById('prodSummaryBox').style.display='block';
+        } else {
+            document.getElementById('prodSummaryBox').style.display='none';
+        }
+    });
+}
+
+$('#genPayForm').on('submit',function(e){
+    e.preventDefault();
+    $.ajax({url:'/payroll/from-production',method:'POST',data:$(this).serialize(),
+        success:function(res){
+            showAlert(res.success?'success':'error',res.message);
+            if(res.success){closeModal('genPayModal');loadPayroll();}
+        }
+    });
+});
+
+function markPaid(id){
+    $.post('/payroll/mark-paid/'+id,{},function(res){ showAlert(res.success?'success':'error',res.message); if(res.success) loadPayroll(); });
+}
+function deletePay(id){ confirmDelete('/payroll/delete/'+id,loadPayroll); }
+
+$('#payrollForm').on('submit',function(e){
+    e.preventDefault();
+    if (!validatePayrollForm()) { showAlert('error','Please fix the highlighted fields.'); return; }
+    const id=document.getElementById('payrollId').value;
+    $.ajax({url:id?'/payroll/edit/'+id:'/payroll/add',method:'POST',data:$(this).serialize(),
+        success:function(res){ showAlert(res.success?'success':'error',res.message); if(res.success){closeModal('payrollModal');loadPayroll();} }
+    });
+});
+
+loadPayroll();
+</script>
+{% endblock %}

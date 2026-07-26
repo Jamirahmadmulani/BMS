@@ -1,0 +1,599 @@
+{% extends "base.html" %}
+{% block title %}Dear Soft IT Solutions{% endblock %}
+{% block content %}
+<div class="page-title-bar">
+    <h5><i class="bi bi-archive-fill"></i> Storage Management</h5>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="/" style="font-size:12px">Dashboard</a></li>
+        <li class="breadcrumb-item active" style="font-size:12px">Storage</li>
+    </ol></nav>
+</div>
+
+<ul class="nav bms-tabs" id="storageTabs">
+    <li class="nav-item"><a class="nav-link active" href="#" onclick="showTab('stock',this);return false;"><i class="bi bi-boxes me-1"></i>Stock</a></li>
+    <li class="nav-item"><a class="nav-link" href="#" onclick="showTab('production',this);return false;"><i class="bi bi-bricks me-1"></i>Brick Production</a></li>
+    <li class="nav-item"><a class="nav-link" href="#" onclick="showTab('deductions',this);return false;"><i class="bi bi-dash-circle me-1"></i>Deductions</a></li>
+</ul>
+
+<!-- STOCK TAB -->
+<div id="tab-stock">
+    <div class="panel">
+        <div class="panel-head"><h6><i class="bi bi-boxes"></i> Current Stock</h6>
+            <div class="d-flex gap-2"><span id="stock-search-wrap"></span><span id="stock-export-wrap"></span><button class="btn-bms-primary" onclick="openAddStockModal()"><i class="bi bi-plus-circle"></i> Add Stock Item</button></div>
+        </div>
+        <div class="table-responsive"><table class="bms-table" id="stockTable">
+            <thead><tr><th>Sr.No</th><th>Item Name</th><th>Type</th><th>Location</th><th>Quantity</th><th>Unit</th><th>Edit</th><th>Delete</th></tr></thead>
+            <tbody id="stockTableBody"><tr><td colspan="8" class="text-center py-3 text-muted small">Select tab to load</td></tr></tbody>
+        </table></div>
+        <div id="stock-pager"></div>
+    </div>
+    <!-- Transactions sub-section -->
+    <div class="panel mt-3">
+        <div class="panel-head"><h6><i class="bi bi-arrow-left-right"></i> Stock Transactions</h6>
+            <div class="d-flex gap-2"><span id="tx-search-wrap"></span><span id="tx-export-wrap"></span><button class="btn-bms-primary" onclick="openAddTxModal()"><i class="bi bi-plus-circle"></i> New Transaction</button></div>
+        </div>
+        <div class="table-responsive"><table class="bms-table" id="storageTxTable">
+            <thead><tr><th>Sr.No</th><th>Date</th><th>Location</th><th>Item</th><th>Type</th><th>Quantity</th><th>Notes</th></tr></thead>
+            <tbody id="txTableBody"><tr><td colspan="7" class="text-center py-3 text-muted small">Select Stock tab to load</td></tr></tbody>
+        </table></div>
+        <div id="tx-pager"></div>
+    </div>
+</div>
+
+<!-- BRICK PRODUCTION TAB -->
+<div id="tab-production" style="display:none">
+    <div class="panel">
+        <div class="panel-head"><h6><i class="bi bi-bricks"></i> Brick Production Records</h6>
+            <div class="d-flex gap-2"><span id="prod-search-wrap"></span><span id="prod-export-wrap"></span><button class="btn-bms-primary" onclick="openAddProdModal()"><i class="bi bi-plus-circle"></i> Add Production</button></div>
+        </div>
+        <div class="table-responsive"><table class="bms-table" id="prodTable">
+            <thead><tr><th>Sr.No</th><th>Date</th><th>Employee</th><th>Set Name</th><th>Dept Type</th><th>Brick Size</th><th>Bricks Produced</th><th>Delete</th></tr></thead>
+            <tbody id="prodTableBody"><tr><td colspan="8" class="text-center py-3 text-muted small">Select tab to load</td></tr></tbody>
+        </table></div>
+        <div id="prod-pager"></div>
+    </div>
+</div>
+
+<!-- DEDUCTIONS TAB -->
+<div id="tab-deductions" style="display:none">
+    <div id="ded-reminder-alerts"></div>
+    <div class="panel">
+        <div class="panel-head"><h6><i class="bi bi-dash-circle"></i> Deduction / Payment Management</h6>
+            <div class="d-flex gap-2"><span id="ded-search-wrap"></span><span id="ded-export-wrap"></span><button class="btn-bms-primary" onclick="openAddDedModal()"><i class="bi bi-plus-circle"></i> Add Deduction</button></div>
+        </div>
+        <div class="table-responsive"><table class="bms-table" id="dedTable">
+            <thead><tr><th>Sr.No</th><th>Payment Date</th><th>Bricks Set</th><th>Employee</th><th>Contact No</th><th>Previous Qty</th><th>Deducted</th><th>Current Qty</th><th>Payment Amount</th><th>Status</th><th>Reason</th><th>Mark Paid</th><th>Delete</th></tr></thead>
+            <tbody id="dedTableBody"><tr><td colspan="13" class="text-center py-3 text-muted small">Select tab to load</td></tr></tbody>
+        </table></div>
+        <div id="ded-pager"></div>
+    </div>
+</div>
+
+<!-- LOCATION MODAL -->
+<div class="modal fade" id="locModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title" id="locModalTitle"><i class="bi bi-geo-alt me-2"></i>Add Location</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body"><form id="locForm"><input type="hidden" id="locId">
+        <div class="mb-3"><label class="form-label">Location Name *</label><input type="text" class="form-control" name="name" required></div>
+        <div class="mb-3"><label class="form-label">Location Type</label>
+            <select class="form-select" name="location_type">
+                <option value="">-- Select Type --</option>
+                <option value="A1">A1</option>
+                <option value="A2">A2</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        <div class="mb-3"><label class="form-label">Capacity</label><input type="number" class="form-control" name="capacity"></div>
+        <div class="mb-3"><label class="form-label">Description</label><textarea class="form-control" name="description" rows="3"></textarea></div>
+    </form></div>
+    <div class="modal-footer"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" form="locForm" class="btn-bms-primary"><i class="bi bi-save"></i> Save</button></div>
+</div></div></div>
+
+<!-- STOCK MODAL -->
+<div class="modal fade" id="stockModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title" id="stockModalTitle"><i class="bi bi-boxes me-2"></i>Add Stock Item</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body"><form id="stockForm"><input type="hidden" id="stockId">
+        <div class="mb-3"><label class="form-label">Location *</label><select class="form-select" name="location_id" id="stockLocSelect" required><option value="">-- Select Location --</option></select></div>
+        <div class="mb-3"><label class="form-label">Item Name *</label><input type="text" class="form-control" name="item_name" required></div>
+        <div class="mb-3"><label class="form-label">Item Type</label><input type="text" class="form-control" name="item_type" placeholder="Finished Product, Raw Material..."></div>
+        <div class="row g-3">
+            <div class="col-6"><label class="form-label">Quantity</label><input type="number" class="form-control" name="quantity" value="0" step="0.01"></div>
+            <div class="col-6"><label class="form-label">Unit</label><input type="text" class="form-control" name="unit" placeholder="pieces, kg..."></div>
+        </div>
+    </form></div>
+    <div class="modal-footer"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" form="stockForm" class="btn-bms-primary"><i class="bi bi-save"></i> Save</button></div>
+</div></div></div>
+
+<!-- TRANSACTION MODAL -->
+<div class="modal fade" id="txModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title"><i class="bi bi-arrow-left-right me-2"></i>New Transaction</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body"><form id="txForm">
+        <div class="mb-3"><label class="form-label">Location *</label><select class="form-select" name="location_id" id="txLocSelect" required><option value="">-- Select Location --</option></select></div>
+        <div class="mb-3"><label class="form-label">Item Name *</label><input type="text" class="form-control" name="item_name" required></div>
+        <div class="mb-3"><label class="form-label">Transaction Type</label>
+            <select class="form-select" name="transaction_type"><option value="in">Stock In</option><option value="out">Stock Out</option></select>
+        </div>
+        <div class="row g-3">
+            <div class="col-6"><label class="form-label">Quantity *</label><input type="number" class="form-control" name="quantity" required step="0.01"></div>
+            <div class="col-6"><label class="form-label">Date *</label><input type="date" class="form-control" name="date" required></div>
+        </div>
+        <div class="mb-3 mt-3"><label class="form-label">Notes</label><textarea class="form-control" name="notes" rows="2"></textarea></div>
+    </form></div>
+    <div class="modal-footer"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" form="txForm" class="btn-bms-primary"><i class="bi bi-save"></i> Save</button></div>
+</div></div></div>
+
+<!-- BRICK PRODUCTION MODAL -->
+<div class="modal fade" id="prodModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title"><i class="bi bi-bricks me-2"></i>Add Brick Production</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body"><form id="prodForm">
+        <div class="mb-3">
+            <label class="form-label">Production Date *</label>
+            <input type="date" class="form-control" name="production_date" id="prodDateInput" required>
+            <div class="invalid-feedback">Production Date is required.</div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Employee Name *</label>
+            <select class="form-select" name="employee_id" id="prodEmpSelect" required onchange="onProdEmpChange(this)">
+                <option value="">-- Select Employee --</option>
+            </select>
+            <div class="invalid-feedback">Employee Name must be selected.</div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Set Name *</label>
+            <select class="form-select" name="location_id" id="prodLocSelect" required>
+                <option value="">-- Select Set --</option>
+            </select>
+            <div class="invalid-feedback">Set Name must be selected.</div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Department Type</label>
+            <input type="text" class="form-control bg-light" id="prodDeptTypeDisplay" readonly placeholder="-- Auto-filled from Employee --">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Brick Size *</label>
+            <select class="form-select" name="brick_size" id="prodBrickSizeInput" required>
+                <option value="">-- Select Brick Size --</option>
+                <option value="4 Inch">4 Inch</option>
+                <option value="6 Inch">6 Inch</option>
+                <option value="8 Inch">8 Inch</option>
+                <option value="9 Inch">9 Inch</option>
+            </select>
+            <div class="invalid-feedback">Brick Size must be selected.</div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Bricks Produced *</label>
+            <input type="number" class="form-control" name="bricks_produced" id="prodBricksInput" required min="1">
+            <div class="invalid-feedback">Bricks Produced must be greater than zero.</div>
+        </div>
+    </form></div>
+    <div class="modal-footer"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" form="prodForm" class="btn-bms-primary"><i class="bi bi-save"></i> Save</button></div>
+</div></div></div>
+
+<!-- DEDUCTION MODAL -->
+<div class="modal fade" id="dedModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title"><i class="bi bi-dash-circle me-2"></i>Add Deduction</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body"><form id="dedForm">
+        <div class="mb-3">
+            <label class="form-label">Bricks Set Name *</label>
+            <select class="form-select" name="location_id" id="dedLocSelect" required onchange="onDedSetChange(this)">
+                <option value="">-- Select Bricks Set --</option>
+            </select>
+            <div class="invalid-feedback">Bricks Set Name is mandatory.</div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Employee Name *</label>
+            <select class="form-select" name="employee_id" id="dedEmpSelect" required onchange="onDedEmpChange(this)">
+                <option value="">-- Select Employee --</option>
+            </select>
+            <div class="invalid-feedback">Employee Name is mandatory.</div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Contact Number</label>
+            <input type="text" class="form-control bg-light" id="dedContactDisplay" readonly placeholder="-- Auto-filled from Employee --">
+        </div>
+        <div class="row g-3">
+            <div class="col-6">
+                <label class="form-label">Previous Bricks Quantity</label>
+                <input type="number" class="form-control bg-light" name="previous_quantity" id="dedPrevQtyInput" readonly step="0.01">
+            </div>
+            <div class="col-6">
+                <label class="form-label">Deducted Quantity *</label>
+                <input type="number" class="form-control" name="deducted_quantity" id="dedDeductedInput" required step="0.01" oninput="calcCurrentQty()">
+                <div class="invalid-feedback">Deducted Quantity is mandatory and cannot exceed Previous Bricks Quantity.</div>
+            </div>
+        </div>
+        <div class="mb-3 mt-3">
+            <label class="form-label">Current Bricks Quantity (auto)</label>
+            <input type="number" class="form-control bg-light" id="currentQtyDisplay" readonly step="0.01">
+        </div>
+        <div class="row g-3">
+            <div class="col-6">
+                <label class="form-label">Payment Amount *</label>
+                <input type="number" class="form-control" name="payment_amount" id="dedPaymentAmountInput" required step="0.01">
+                <div class="invalid-feedback">Payment Amount is mandatory.</div>
+            </div>
+            <div class="col-6">
+                <label class="form-label">Payment Date *</label>
+                <input type="date" class="form-control" name="payment_date" id="dedPaymentDateInput" required>
+                <div class="invalid-feedback">Payment Date is mandatory.</div>
+            </div>
+        </div>
+        <div class="mb-3 mt-3">
+            <label class="form-label">Payment Status *</label>
+            <select class="form-select" name="payment_status" id="dedPaymentStatusInput" required onchange="onDedStatusChange()">
+                <option value="">-- Select Status --</option>
+                <option value="Online">Online</option>
+                <option value="Cash">Cash</option>
+                <option value="Pending">Pending</option>
+            </select>
+            <div class="invalid-feedback">Payment Status is mandatory.</div>
+        </div>
+        <div class="mb-3" id="dedReminderWrap" style="display:none">
+            <label class="form-label">Reminder Date *</label>
+            <input type="date" class="form-control" name="reminder_date" id="dedReminderDateInput">
+            <div class="invalid-feedback">Reminder Date is mandatory when Payment Status is Pending, and cannot be earlier than Payment Date.</div>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Reason *</label>
+            <textarea class="form-control" name="reason" id="dedReasonInput" rows="2" required></textarea>
+            <div class="invalid-feedback">Reason is mandatory.</div>
+        </div>
+    </form></div>
+    <div class="modal-footer"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button><button type="submit" form="dedForm" class="btn-bms-primary"><i class="bi bi-save"></i> Save</button></div>
+</div></div></div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+function showTab(tab,el){
+    document.querySelectorAll('[id^="tab-"]').forEach(e=>e.style.display='none');
+    document.getElementById('tab-'+tab).style.display='block';
+    document.querySelectorAll('#storageTabs .nav-link').forEach(e=>e.classList.remove('active'));
+    el.classList.add('active');
+    if(tab==='stock') { loadStock(); loadTransactions(); }
+    if(tab==='production') loadProduction();
+    if(tab==='deductions') loadDeductions();
+}
+
+function loadLocations(){
+    tableLoading('locTableBody',7);
+    $.get('/storage/data',function(data){
+        document.getElementById('loc-search-wrap').innerHTML=searchBar('loc','Search...');
+        document.getElementById('loc-pager').innerHTML=pagerBar('loc');
+        BmsPager.init('loc',data,function(slice,offset){
+            if(!slice.length){tableEmpty('locTableBody',7);return;}
+            let html='';
+            slice.forEach((d,i)=>html+=`<tr>
+                <td>${offset+i+1}</td>
+                <td><strong>${d.name}</strong></td>
+                <td>${d.location_type?'<span class="badge bg-primary">'+d.location_type+'</span>':'<em class="text-muted">--</em>'}</td>
+                <td>${d.capacity?d.capacity.toLocaleString():'--'}</td>
+                <td>${d.description?d.description.substring(0,60):'--'}</td>
+                <td><span class="badge bg-secondary">${d.item_count} items</span></td>
+                <td>${editBtn('openEditLocModal('+d.id+')')}</td>
+                <td>${deleteBtn('deleteLoc('+d.id+')')}</td>
+            </tr>`);
+            document.getElementById('locTableBody').innerHTML=html;
+        },{perPage:25});
+    });
+}
+
+function loadStock(){
+    tableLoading('stockTableBody',8);
+    $.get('/storage/stock/data',function(data){
+        document.getElementById('stock-search-wrap').innerHTML=searchBar('stock','Search items...');
+        document.getElementById('stock-export-wrap').innerHTML=exportBar('stock','stock_items','stockTable');
+        document.getElementById('stock-pager').innerHTML=pagerBar('stock');
+        BmsPager.init('stock',data,function(slice,offset){
+            if(!slice.length){tableEmpty('stockTableBody',8);return;}
+            let html='';
+            slice.forEach((s,i)=>{
+                const rowCls=s.low_stock?'class="low-stock-row"':'';
+                const lowBadge=s.low_stock?'<span class="low-stock-badge">LOW</span>':'';
+                html+=`<tr ${rowCls}><td>${offset+i+1}</td><td><strong>${s.item_name}</strong>${lowBadge}</td><td>${s.item_type||'--'}</td><td>${s.location_name}</td><td>${parseFloat(s.quantity).toLocaleString()}</td><td>${s.unit||'--'}</td><td>${editBtn('openEditStockModal('+s.id+')')}</td><td>${deleteBtn('deleteStock('+s.id+')')}</td></tr>`;
+            });
+            document.getElementById('stockTableBody').innerHTML=html;
+        },{perPage:25});
+    });
+}
+
+function loadTransactions(){
+    tableLoading('txTableBody',7);
+    $.get('/storage/transactions/data',function(data){
+        document.getElementById('tx-search-wrap').innerHTML=searchBar('tx','Search...');
+        document.getElementById('tx-pager').innerHTML=pagerBar('tx');
+        document.getElementById('tx-export-wrap').innerHTML=exportBar('tx','storage_transactions','storageTxTable');
+        BmsPager.init('tx',data,function(slice,offset){
+            if(!slice.length){tableEmpty('txTableBody',7);return;}
+            let html='';
+            slice.forEach((t,i)=>html+=`<tr><td>${offset+i+1}</td><td>${fmtDate(t.date)}</td><td>${t.location_name}</td><td>${t.item_name}</td><td>${statusBadge(t.transaction_type)}</td><td>${parseFloat(t.quantity).toLocaleString()}</td><td>${t.notes?t.notes.substring(0,50):'--'}</td></tr>`);
+            document.getElementById('txTableBody').innerHTML=html;
+        },{perPage:25});
+    });
+}
+
+function loadProduction(){
+    tableLoading('prodTableBody',8);
+    $.get('/storage/production/data',function(data){
+        document.getElementById('prod-search-wrap').innerHTML=searchBar('prod','Search...');
+        document.getElementById('prod-pager').innerHTML=pagerBar('prod');
+        document.getElementById('prod-export-wrap').innerHTML=exportBar('prod','brick_production','prodTable');
+        BmsPager.init('prod',data,function(slice,offset){
+            if(!slice.length){tableEmpty('prodTableBody',8);return;}
+            let html='';
+            slice.forEach((p,i)=>html+=`<tr>
+                <td>${offset+i+1}</td>
+                <td>${fmtDate(p.production_date)}</td>
+                <td>${p.employee_name}</td>
+                <td>${p.location_name}</td>
+                <td>${p.department_type?'<span class="badge bg-info text-dark">'+p.department_type+'</span>':'--'}</td>
+                <td>${p.brick_size||'--'}</td>
+                <td><strong>${parseInt(p.bricks_produced).toLocaleString()}</strong></td>
+                <td>${deleteBtn('deleteProd('+p.id+')')}</td>
+            </tr>`);
+            document.getElementById('prodTableBody').innerHTML=html;
+        },{perPage:25});
+    });
+}
+
+function statusBadgeForPayment(status){
+    if(status==='Online') return '<span class="badge bg-success">Online</span>';
+    if(status==='Cash') return '<span class="badge bg-primary">Cash</span>';
+    return '<span class="badge bg-warning text-dark">Pending</span>';
+}
+function loadDeductions(){
+    tableLoading('dedTableBody',13);
+    loadDedReminders();
+    $.get('/storage/deductions/data',function(data){
+        document.getElementById('ded-search-wrap').innerHTML=searchBar('ded','Search...');
+        document.getElementById('ded-pager').innerHTML=pagerBar('ded');
+        document.getElementById('ded-export-wrap').innerHTML=exportBar('ded','deductions','dedTable');
+        BmsPager.init('ded',data,function(slice,offset){
+            if(!slice.length){tableEmpty('dedTableBody',13);return;}
+            let html='';
+            slice.forEach((d,i)=>{
+                const markPaidBtn = d.payment_status==='Pending'
+                    ? `<button class="btn-action btn-edit ms-1" title="Mark Paid" onclick="markDedPaid(${d.id})"><i class="bi bi-check-circle"></i></button>`
+                    : '';
+                html+=`<tr>
+                <td>${offset+i+1}</td>
+                <td>${fmtDate(d.payment_date)}</td>
+                <td>${d.location_name}</td>
+                <td>${d.employee_name||'--'}</td>
+                <td>${d.contact_number||'--'}</td>
+                <td>${parseFloat(d.previous_quantity).toLocaleString()}</td>
+                <td style="color:#c0392b"><strong>${parseFloat(d.deducted_quantity).toLocaleString()}</strong></td>
+                <td>${parseFloat(d.current_quantity).toLocaleString()}</td>
+                <td>${fmtCurrency(d.payment_amount)}</td>
+                <td>${statusBadgeForPayment(d.payment_status)}</td>
+                <td>${d.reason?d.reason.substring(0,50):'--'}</td>
+                <td>${markPaidBtn}</td>
+                <td>${deleteBtn('deleteDed('+d.id+')')}</td>
+            </tr>`;});
+            document.getElementById('dedTableBody').innerHTML=html;
+        },{perPage:25});
+    });
+}
+
+function loadLocSelect(selId){
+    $.get('/storage/locations-list',function(data){
+        const sel=document.getElementById(selId);
+        sel.innerHTML='<option value="">-- Select Location --</option>';
+        data.forEach(l=>sel.innerHTML+=`<option value="${l.id}">${l.name}</option>`);
+    });
+}
+let _prodEmpDeptMap = {};
+function loadEmpSelect(selId){
+    $.get('/employees/list',function(data){
+        const sel=document.getElementById(selId);
+        sel.innerHTML='<option value="">-- Select Employee --</option>';
+        data.forEach(e=>{
+            sel.innerHTML+=`<option value="${e.id}">${e.name}</option>`;
+            _prodEmpDeptMap[e.id] = e.department_name || '';
+        });
+    });
+}
+function onProdEmpChange(sel){
+    document.getElementById('prodDeptTypeDisplay').value = _prodEmpDeptMap[sel.value] || '';
+}
+
+// Location modals
+function openAddLocModal(){
+    document.getElementById('locModalTitle').innerHTML='<i class="bi bi-geo-alt me-2"></i>Add Location';
+    document.getElementById('locForm').reset();
+    document.getElementById('locId').value='';
+    openModal('locModal');
+}
+function openEditLocModal(id){
+    document.getElementById('locModalTitle').innerHTML='<i class="bi bi-pencil-square me-2"></i>Edit Location';
+    $.get('/storage/get/'+id,function(data){
+        document.getElementById('locId').value=id;
+        const f=document.getElementById('locForm');
+        f.querySelector('[name="name"]').value=data.name||'';
+        f.querySelector('[name="location_type"]').value=data.location_type||'';
+        f.querySelector('[name="capacity"]').value=data.capacity||'';
+        f.querySelector('[name="description"]').value=data.description||'';
+        openModal('locModal');
+    });
+}
+function openAddStockModal(){
+    document.getElementById('stockModalTitle').innerHTML='<i class="bi bi-boxes me-2"></i>Add Stock Item';
+    document.getElementById('stockForm').reset();
+    document.getElementById('stockId').value='';
+    loadLocSelect('stockLocSelect');
+    openModal('stockModal');
+}
+function openEditStockModal(id){
+    document.getElementById('stockModalTitle').innerHTML='<i class="bi bi-pencil-square me-2"></i>Edit Stock';
+    loadLocSelect('stockLocSelect');
+    $.get('/storage/stock/get/'+id,function(data){
+        document.getElementById('stockId').value=id;
+        ['item_name','item_type','quantity','unit'].forEach(k=>{
+            const el=document.getElementById('stockForm').querySelector('[name="'+k+'"]');
+            if(el) el.value=data[k]||'';
+        });
+        setTimeout(()=>{document.getElementById('stockLocSelect').value=data.location_id||'';},300);
+        openModal('stockModal');
+    });
+}
+function openAddTxModal(){
+    document.getElementById('txForm').reset();
+    loadLocSelect('txLocSelect');
+    openModal('txModal');
+}
+function openAddProdModal(){
+    document.getElementById('prodForm').reset();
+    document.getElementById('prodForm').querySelectorAll('.is-invalid').forEach(el=>el.classList.remove('is-invalid'));
+    document.getElementById('prodDeptTypeDisplay').value='';
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('prodDateInput').value = today;
+    loadEmpSelect('prodEmpSelect');
+    loadLocSelect('prodLocSelect');
+    setTimeout(()=>{
+        const sel = document.getElementById('prodLocSelect');
+        if (sel.options[0]) sel.options[0].textContent = '-- Select Set --';
+    }, 200);
+    openModal('prodModal');
+}
+function validateProdForm(){
+    document.getElementById('prodForm').querySelectorAll('.is-invalid').forEach(el=>el.classList.remove('is-invalid'));
+    let valid = true;
+    const markInvalid = id => { document.getElementById(id).classList.add('is-invalid'); valid = false; };
+
+    if (!document.getElementById('prodDateInput').value) markInvalid('prodDateInput');
+    if (!document.getElementById('prodEmpSelect').value) markInvalid('prodEmpSelect');
+    if (!document.getElementById('prodLocSelect').value) markInvalid('prodLocSelect');
+    if (!document.getElementById('prodBrickSizeInput').value) markInvalid('prodBrickSizeInput');
+
+    const bricks = parseFloat(document.getElementById('prodBricksInput').value);
+    if (!bricks || bricks <= 0) markInvalid('prodBricksInput');
+
+    return valid;
+}
+let _dedEmpContactMap = {};
+function openAddDedModal(){
+    document.getElementById('dedForm').reset();
+    document.getElementById('dedForm').querySelectorAll('.is-invalid').forEach(el=>el.classList.remove('is-invalid'));
+    document.getElementById('currentQtyDisplay').value='';
+    document.getElementById('dedPrevQtyInput').value='';
+    document.getElementById('dedContactDisplay').value='';
+    document.getElementById('dedReminderWrap').style.display='none';
+    loadLocSelect('dedLocSelect');
+    setTimeout(()=>{
+        const sel = document.getElementById('dedLocSelect');
+        if (sel.options[0]) sel.options[0].textContent = '-- Select Bricks Set --';
+    }, 200);
+    $.get('/employees/list',function(data){
+        const sel=document.getElementById('dedEmpSelect');
+        sel.innerHTML='<option value="">-- Select Employee --</option>';
+        _dedEmpContactMap={};
+        data.forEach(e=>{
+            sel.innerHTML+=`<option value="${e.id}">${e.name}</option>`;
+            _dedEmpContactMap[e.id]=e.mobile||'';
+        });
+    });
+    openModal('dedModal');
+}
+function onDedSetChange(sel){
+    if(!sel.value){ document.getElementById('dedPrevQtyInput').value=''; calcCurrentQty(); return; }
+    $.get('/storage/deductions/set-quantity/'+sel.value,function(data){
+        document.getElementById('dedPrevQtyInput').value=data.previous_quantity;
+        calcCurrentQty();
+    });
+}
+function onDedEmpChange(sel){
+    document.getElementById('dedContactDisplay').value = _dedEmpContactMap[sel.value] || '';
+}
+function onDedStatusChange(){
+    const status = document.getElementById('dedPaymentStatusInput').value;
+    const wrap = document.getElementById('dedReminderWrap');
+    if(status==='Pending'){
+        wrap.style.display='block';
+        document.getElementById('dedReminderDateInput').setAttribute('required','required');
+    } else {
+        wrap.style.display='none';
+        document.getElementById('dedReminderDateInput').removeAttribute('required');
+        document.getElementById('dedReminderDateInput').value='';
+    }
+}
+function calcCurrentQty(){
+    const prev=parseFloat(document.getElementById('dedPrevQtyInput').value)||0;
+    const ded=parseFloat(document.getElementById('dedDeductedInput').value)||0;
+    document.getElementById('currentQtyDisplay').value=(prev-ded).toFixed(2);
+}
+function validateDedForm(){
+    document.getElementById('dedForm').querySelectorAll('.is-invalid').forEach(el=>el.classList.remove('is-invalid'));
+    let valid = true;
+    const markInvalid = id => { document.getElementById(id).classList.add('is-invalid'); valid = false; };
+
+    if (!document.getElementById('dedLocSelect').value) markInvalid('dedLocSelect');
+    if (!document.getElementById('dedEmpSelect').value) markInvalid('dedEmpSelect');
+
+    const prevQty = parseFloat(document.getElementById('dedPrevQtyInput').value) || 0;
+    const dedQty = parseFloat(document.getElementById('dedDeductedInput').value);
+    if (!dedQty || dedQty <= 0 || dedQty > prevQty) markInvalid('dedDeductedInput');
+
+    const paymentAmount = parseFloat(document.getElementById('dedPaymentAmountInput').value);
+    if (!paymentAmount || paymentAmount <= 0) markInvalid('dedPaymentAmountInput');
+
+    if (!document.getElementById('dedPaymentDateInput').value) markInvalid('dedPaymentDateInput');
+
+    const status = document.getElementById('dedPaymentStatusInput').value;
+    if (!status) markInvalid('dedPaymentStatusInput');
+
+    if (status === 'Pending') {
+        const reminderDate = document.getElementById('dedReminderDateInput').value;
+        const paymentDate = document.getElementById('dedPaymentDateInput').value;
+        if (!reminderDate || (paymentDate && reminderDate < paymentDate)) markInvalid('dedReminderDateInput');
+    }
+
+    if (!document.getElementById('dedReasonInput').value.trim()) markInvalid('dedReasonInput');
+
+    return valid;
+}
+function loadDedReminders(){
+    $.get('/storage/deductions/pending-reminders',function(data){
+        const wrap = document.getElementById('ded-reminder-alerts');
+        if(!data.length){ wrap.innerHTML=''; return; }
+        let html='';
+        data.forEach(r=>{
+            html+=`<div class="alert alert-warning d-flex align-items-center justify-content-between" role="alert">
+                <span><i class="bi bi-bell-fill me-2"></i><strong>Pending Payment Reminder:</strong> Rs. ${parseFloat(r.payment_amount||0).toLocaleString()} due to ${r.employee_name||'employee'} (reminder date ${r.reminder_date})</span>
+            </div>`;
+        });
+        wrap.innerHTML=html;
+    });
+}
+function markDedPaid(id){
+    const method = prompt('Mark as paid via (type: Online or Cash):','Cash');
+    if(!method) return;
+    const normalized = method.trim().toLowerCase()==='online' ? 'Online' : (method.trim().toLowerCase()==='cash' ? 'Cash' : null);
+    if(!normalized){ showAlert('error','Please type Online or Cash.'); return; }
+    $.ajax({url:'/storage/deductions/mark-paid/'+id,method:'POST',data:{payment_status:normalized},success:function(res){
+        showAlert(res.success?'success':'error',res.message);
+        if(res.success) loadDeductions();
+    }});
+}
+
+function deleteLoc(id){ confirmDelete('/storage/delete/'+id,loadLocations); }
+function deleteStock(id){ confirmDelete('/storage/stock/delete/'+id,loadStock); }
+function deleteProd(id){ confirmDelete('/storage/production/delete/'+id,loadProduction); }
+function deleteDed(id){ confirmDelete('/storage/deductions/delete/'+id,loadDeductions); }
+
+$('#locForm').on('submit',function(e){ e.preventDefault(); const id=document.getElementById('locId').value; $.ajax({url:id?'/storage/edit/'+id:'/storage/add',method:'POST',data:$(this).serialize(),success:function(res){ showAlert(res.success?'success':'error',res.message); if(res.success){closeModal('locModal');loadLocations();} }}); });
+$('#stockForm').on('submit',function(e){ e.preventDefault(); const id=document.getElementById('stockId').value; $.ajax({url:id?'/storage/stock/edit/'+id:'/storage/stock/add',method:'POST',data:$(this).serialize(),success:function(res){ showAlert(res.success?'success':'error',res.message); if(res.success){closeModal('stockModal');loadStock();} }}); });
+$('#txForm').on('submit',function(e){ e.preventDefault(); $.ajax({url:'/storage/transactions/add',method:'POST',data:$(this).serialize(),success:function(res){ showAlert(res.success?'success':'error',res.message); if(res.success){closeModal('txModal');loadTransactions();loadStock();} }}); });
+$('#prodForm').on('submit',function(e){
+    e.preventDefault();
+    if (!validateProdForm()) { showAlert('error','Please fix the highlighted fields.'); return; }
+    $.ajax({url:'/storage/production/add',method:'POST',data:$(this).serialize(),success:function(res){ showAlert(res.success?'success':'error',res.message); if(res.success){closeModal('prodModal');loadProduction();} }});
+});
+$('#dedForm').on('submit',function(e){
+    e.preventDefault();
+    if (!validateDedForm()) { showAlert('error','Please fix the highlighted fields.'); return; }
+    $.ajax({url:'/storage/deductions/add',method:'POST',data:$(this).serialize(),success:function(res){ showAlert(res.success?'success':'error',res.message); if(res.success){closeModal('dedModal');loadDeductions();} }});
+});
+
+loadStock();
+loadTransactions();
+</script>
+{% endblock %}

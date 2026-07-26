@@ -1,0 +1,170 @@
+{% extends "base.html" %}
+{% block title %}Dear Soft IT Solutions{% endblock %}
+
+{% block content %}
+<!-- Page Title -->
+<div class="page-title-bar">
+    <h5><i class="bi bi-speedometer2"></i> Dashboard</h5>
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item active" style="font-size:12px">Home / Dashboard</li>
+        </ol>
+    </nav>
+</div>
+
+<!-- ===== SECTION: MODULE SUMMARY ===== -->
+<p class="section-heading"><span>Module Summary</span></p>
+
+<div class="row g-3 mb-4">
+    <div class="col-xl-2 col-lg-4 col-md-4 col-sm-6 col-6">
+        <a href="{{ url_for('employees.index') }}" class="stat-card c-blue">
+            <i class="bi bi-people-fill stat-icon"></i>
+            <div class="stat-count">{{ counts.get('employees', 0) }}</div>
+            <div class="stat-label">Total Employees</div>
+        </a>
+    </div>
+    <div class="col-xl-2 col-lg-4 col-md-4 col-sm-6 col-6">
+        <a href="{{ url_for('departments.index') }}" class="stat-card c-purple">
+            <i class="bi bi-diagram-3-fill stat-icon"></i>
+            <div class="stat-count">{{ counts.get('departments', 0) }}</div>
+            <div class="stat-label">Departments</div>
+        </a>
+    </div>
+    <div class="col-xl-2 col-lg-4 col-md-4 col-sm-6 col-6">
+        <a href="{{ url_for('storage.index') }}" class="stat-card c-teal">
+            <i class="bi bi-archive-fill stat-icon"></i>
+            <div class="stat-count">{{ counts.get('storage_locations', 0) }}</div>
+            <div class="stat-label">Storage Locations</div>
+        </a>
+    </div>
+    <div class="col-xl-2 col-lg-4 col-md-4 col-sm-6 col-6">
+        <a href="{{ url_for('payroll.index') }}" class="stat-card c-orange">
+            <i class="bi bi-cash-coin stat-icon"></i>
+            <div class="stat-count">{{ counts.get('payroll', 0) }}</div>
+            <div class="stat-label">Payroll Records</div>
+        </a>
+    </div>
+    <div class="col-xl-2 col-lg-4 col-md-4 col-sm-6 col-6">
+        <a href="{{ url_for('vehicles.index') }}" class="stat-card c-red">
+            <i class="bi bi-truck-front-fill stat-icon"></i>
+            <div class="stat-count">{{ counts.get('vehicles', 0) }}</div>
+            <div class="stat-label">Vehicles</div>
+        </a>
+    </div>
+    <div class="col-xl-2 col-lg-4 col-md-4 col-sm-6 col-6">
+        <a href="{{ url_for('raw_materials.index') }}" class="stat-card c-green">
+            <i class="bi bi-boxes stat-icon"></i>
+            <div class="stat-count">{{ counts.get('raw_materials', 0) }}</div>
+            <div class="stat-label">Raw Materials</div>
+        </a>
+    </div>
+</div>
+
+<!-- ===== SECTION: QUICK ACCESS ===== -->
+<p class="section-heading"><span>Quick Access</span></p>
+
+<div class="row g-3">
+    <div class="col-lg-4 col-md-6">
+        <div class="panel">
+            <div class="panel-head">
+                <h6><i class="bi bi-people-fill text-primary"></i> Employee Management</h6>
+                <a href="{{ url_for('employees.index') }}" class="btn-bms-primary">
+                    <i class="bi bi-arrow-right-circle"></i> Open
+                </a>
+            </div>
+            <div class="panel-body px-3 py-2" style="font-size:13px; color:#718096;">
+                <div class="d-flex gap-3 py-2">
+                    <span><i class="bi bi-person-check text-success me-1"></i> Employee Records</span>
+                    <span><i class="bi bi-calendar-check text-info me-1"></i> Attendance</span>
+                    <span><i class="bi bi-calendar-x text-warning me-1"></i> Leaves</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+        <div class="panel">
+            <div class="panel-head">
+                <h6><i class="bi bi-cash-coin text-warning"></i> Payroll System</h6>
+                <a href="{{ url_for('payroll.index') }}" class="btn-bms-primary">
+                    <i class="bi bi-arrow-right-circle"></i> Open
+                </a>
+            </div>
+            <div class="panel-body px-3 py-2" style="font-size:13px; color:#718096;">
+                <div class="d-flex gap-3 py-2">
+                    <span><i class="bi bi-calendar-week text-primary me-1"></i> Weekly</span>
+                    <span><i class="bi bi-cash text-warning me-1"></i> Advance</span>
+                    <span><i class="bi bi-receipt text-success me-1"></i> Monthly</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+        <div class="panel">
+            <div class="panel-head">
+                <h6><i class="bi bi-boxes text-success"></i> Raw Materials</h6>
+                <a href="{{ url_for('raw_materials.index') }}" class="btn-bms-primary">
+                    <i class="bi bi-arrow-right-circle"></i> Open
+                </a>
+            </div>
+            <div class="panel-body px-3 py-2" style="font-size:13px; color:#718096;">
+                <div class="d-flex gap-3 py-2">
+                    <span><i class="bi bi-shop text-primary me-1"></i> Suppliers</span>
+                    <span><i class="bi bi-cart3 text-warning me-1"></i> Purchases</span>
+                    <span><i class="bi bi-bar-chart text-success me-1"></i> Stock</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+        <div class="panel">
+            <div class="panel-head">
+                <h6><i class="bi bi-archive-fill text-info"></i> Storage</h6>
+                <a href="{{ url_for('storage.index') }}" class="btn-bms-primary">
+                    <i class="bi bi-arrow-right-circle"></i> Open
+                </a>
+            </div>
+            <div class="panel-body px-3 py-2" style="font-size:13px; color:#718096;">
+                <div class="d-flex gap-3 py-2">
+                    <span><i class="bi bi-geo-alt text-primary me-1"></i> Locations</span>
+                    <span><i class="bi bi-arrow-down-circle text-success me-1"></i> Stock In</span>
+                    <span><i class="bi bi-arrow-up-circle text-danger me-1"></i> Stock Out</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+        <div class="panel">
+            <div class="panel-head">
+                <h6><i class="bi bi-truck-front-fill text-danger"></i> Vehicles</h6>
+                <a href="{{ url_for('vehicles.index') }}" class="btn-bms-primary">
+                    <i class="bi bi-arrow-right-circle"></i> Open
+                </a>
+            </div>
+            <div class="panel-body px-3 py-2" style="font-size:13px; color:#718096;">
+                <div class="d-flex gap-3 py-2">
+                    <span><i class="bi bi-truck text-primary me-1"></i> Vehicles</span>
+                    <span><i class="bi bi-person-badge text-info me-1"></i> Drivers</span>
+                    <span><i class="bi bi-tools text-warning me-1"></i> Maintenance</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4 col-md-6">
+        <div class="panel">
+            <div class="panel-head">
+                <h6><i class="bi bi-diagram-3-fill text-secondary"></i> Departments</h6>
+                <a href="{{ url_for('departments.index') }}" class="btn-bms-primary">
+                    <i class="bi bi-arrow-right-circle"></i> Open
+                </a>
+            </div>
+            <div class="panel-body px-3 py-2" style="font-size:13px; color:#718096;">
+                <div class="d-flex gap-3 py-2">
+                    <span><i class="bi bi-plus-circle text-success me-1"></i> Create</span>
+                    <span><i class="bi bi-person-plus text-info me-1"></i> Allocate</span>
+                    <span><i class="bi bi-bar-chart text-primary me-1"></i> Reports</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

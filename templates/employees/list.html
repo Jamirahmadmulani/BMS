@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+{% block title %}Dear Soft IT Solutions{% endblock %}
+
+{% block content %}
+<div class="page-title-bar">
+    <h5><i class="bi bi-people-fill"></i> Employee Management</h5>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="/" style="font-size:12px">Dashboard</a></li>
+        <li class="breadcrumb-item active" style="font-size:12px">Employees</li>
+    </ol></nav>
+</div>
+
+<!-- EMPLOYEES TAB -->
+<div id="tab-employees">
+    <div class="panel">
+        <div class="panel-head">
+            <h6><i class="bi bi-people-fill"></i> All Employees</h6>
+            <div class="d-flex gap-2 align-items-center">
+                <span id="emp-search-wrap"></span>
+                <span id="emp-export-wrap"></span>
+                <button class="btn-bms-primary" onclick="openAddModal()"><i class="bi bi-plus-circle"></i> Add Employee</button>
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="bms-table" id="empTable">
+                <thead><tr><th>Sr.No</th><th>Aadhaar Card</th><th>Name</th><th>Contact No</th><th>Aadhaar No</th><th>Department</th><th>Status</th><th>Edit</th><th>Delete</th></tr></thead>
+                <tbody id="empTableBody"><tr><td colspan="9" class="loading-spinner"><span class="spinner-border spinner-border-sm"></span> Loading...</td></tr></tbody>
+            </table>
+        </div>
+        <div id="emp-pager"></div>
+    </div>
+</div>
+
+<!-- EMPLOYEE ADD/EDIT MODAL -->
+<div class="modal fade" id="empModal" tabindex="-1">
+    <div class="modal-dialog modal-lg"><div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="empModalTitle"><i class="bi bi-person-plus me-2"></i>Add Employee</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+            <form id="empForm" enctype="multipart/form-data">
+                <input type="hidden" id="empId" name="emp_id">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Employee Name *</label>
+                        <input type="text" class="form-control" name="name" id="empNameInput" required>
+                        <div class="invalid-feedback">Employee Name is required.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Contact Number *</label>
+                        <input type="text" class="form-control" name="mobile" id="empMobileInput" placeholder="10 digit number" inputmode="numeric" maxlength="10" required>
+                        <div class="invalid-feedback">Contact Number must contain exactly 10 digits.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Aadhaar Number *</label>
+                        <input type="text" class="form-control" name="aadhar_number" id="empAadharInput" placeholder="12 digit number" inputmode="numeric" maxlength="12" required>
+                        <div class="invalid-feedback">Aadhaar Number must contain exactly 12 digits.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Department *</label>
+                        <select class="form-select" name="department_id" id="empDeptSelect" required>
+                            <option value="">-- Select Department --</option>
+                        </select>
+                        <div class="invalid-feedback">Please select a department.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Joining Date *</label>
+                        <input type="date" class="form-control" name="joining_date" id="empJoiningDateInput" required>
+                        <div class="invalid-feedback">Joining Date is required.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Status *</label>
+                        <select class="form-select" name="status" id="empStatusInput" required>
+                            <option value="">-- Select Status --</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                        <div class="invalid-feedback">Please select a status.</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label">Address *</label>
+                        <textarea class="form-control" name="address" id="empAddressInput" rows="2" required></textarea>
+                        <div class="invalid-feedback">Address is required.</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Aadhaar Card Upload * <small class="text-muted">(JPG, JPEG, PNG)</small></label>
+                        <input type="file" class="form-control" name="photograph" id="empAadharFileInput" accept=".jpg,.jpeg,.png,image/jpeg,image/png">
+                        <div class="invalid-feedback">Aadhaar Card Upload is required (JPG, JPEG, or PNG only).</div>
+                        <div id="currentPhotoWrap" class="mt-1"></div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Notary PDF Upload * <small class="text-muted">(PDF only)</small></label>
+                        <input type="file" class="form-control" name="notary_pdf" id="empNotaryFileInput" accept=".pdf,application/pdf">
+                        <div class="invalid-feedback">Notary PDF Upload is required (PDF only).</div>
+                        <div id="currentNotaryWrap" class="mt-1"></div>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn-bms-primary" onclick="submitEmpForm()"><i class="bi bi-save"></i> Save</button>
+        </div>
+    </div></div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// ---- EMPLOYEES ----
+function loadEmployees() {
+    tableLoading('empTableBody', 9);
+    $.get('/employees/data', function(data) {
+        document.getElementById('emp-search-wrap').innerHTML = searchBar('emp','Search employees...');
+        document.getElementById('emp-export-wrap').innerHTML = exportBar('emp','employees','empTable');
+        document.getElementById('emp-pager').innerHTML = pagerBar('emp');
+        BmsPager.init('emp', data, renderEmpPage, {perPage:25});
+    });
+}
+function renderEmpPage(slice, offset) {
+    if (!slice.length) { tableEmpty('empTableBody', 9); return; }
+    let html='';
+    slice.forEach(function(e,i){
+        const photoHtml = e.photograph
+            ? `<img src="/static/uploads/photos/${e.photograph}" class="rounded-circle" style="width:36px;height:36px;object-fit:cover;">`
+            : `<span class="rounded-circle bg-secondary d-inline-flex align-items-center justify-content-center text-white" style="width:36px;height:36px;font-size:14px;"><i class="bi bi-person"></i></span>`;
+        html+=`<tr>
+            <td>${offset+i+1}</td>
+            <td>${photoHtml}</td>
+            <td><strong>${e.name}</strong></td>
+            <td>${e.mobile||'--'}</td>
+            <td>${e.aadhar_number||'--'}</td>
+            <td>${e.department_name||'<em class="text-muted">None</em>'}</td>
+            <td>${statusBadge(e.status)}</td>
+            <td>${editBtn('openEditModal('+e.id+')')}</td>
+            <td>${deleteBtn('deleteEmp('+e.id+')')}</td>
+        </tr>`;
+    });
+    document.getElementById('empTableBody').innerHTML=html;
+}
+
+
+function loadDeptSelect(selectedId) {
+    $.ajax({
+        url:'/employees/departments-list',
+        dataType:'json',
+        success:function(data){
+            const sel=document.getElementById('empDeptSelect');
+            sel.innerHTML='<option value="">-- No Department --</option>';
+            if(Array.isArray(data)){
+                data.forEach(d=>{
+                    const opt=document.createElement('option');
+                    opt.value=d.id; opt.textContent=d.name;
+                    if(selectedId && d.id==selectedId) opt.selected=true;
+                    sel.appendChild(opt);
+                });
+            }
+        },
+        error:function(){ console.warn('Could not load departments'); }
+    });
+}
+
+function openAddModal() {
+    document.getElementById('empModalTitle').innerHTML='<i class="bi bi-person-plus me-2"></i>Add Employee';
+    document.getElementById('empForm').reset();
+    document.getElementById('empId').value='';
+    document.getElementById('currentPhotoWrap').innerHTML='';
+    document.getElementById('currentNotaryWrap').innerHTML='';
+    clearEmpValidation();
+    loadDeptSelect();
+    openModal('empModal');
+}
+function openEditModal(id) {
+    document.getElementById('empModalTitle').innerHTML='<i class="bi bi-pencil-square me-2"></i>Edit Employee';
+    $.get('/employees/get/'+id, function(data){
+        const f=document.getElementById('empForm');
+        document.getElementById('empId').value=id;
+        ['name','mobile','aadhar_number','joining_date','status','address'].forEach(k=>{
+            const el=f.querySelector('[name="'+k+'"]');
+            if(el) el.value=data[k]||'';
+        });
+        loadDeptSelect(data.department_id||'');
+        // show current aadhaar card image
+        document.getElementById('currentPhotoWrap').innerHTML = data.photograph
+            ? `<small class="text-muted">Current: <img src="/static/uploads/photos/${data.photograph}" style="height:30px;border-radius:3px;"> (upload new to replace)</small>`
+            : '';
+        document.getElementById('currentNotaryWrap').innerHTML = data.notary_pdf
+            ? `<small class="text-muted">Current PDF on file. Upload new to replace.</small>`
+            : '';
+        clearEmpValidation();
+        openModal('empModal');
+    });
+}
+
+function clearEmpValidation() {
+    document.getElementById('empForm').querySelectorAll('.is-invalid').forEach(el=>el.classList.remove('is-invalid'));
+}
+
+function validateEmpForm() {
+    clearEmpValidation();
+    const isEdit = !!document.getElementById('empId').value;
+    let valid = true;
+    const markInvalid = id => { document.getElementById(id).classList.add('is-invalid'); valid = false; };
+
+    const name = document.getElementById('empNameInput').value.trim();
+    if (!name) markInvalid('empNameInput');
+
+    const mobile = document.getElementById('empMobileInput').value.trim();
+    if (!/^\d{10}$/.test(mobile)) markInvalid('empMobileInput');
+
+    const aadhar = document.getElementById('empAadharInput').value.trim();
+    if (!/^\d{12}$/.test(aadhar)) markInvalid('empAadharInput');
+
+    if (!document.getElementById('empDeptSelect').value) markInvalid('empDeptSelect');
+    if (!document.getElementById('empJoiningDateInput').value) markInvalid('empJoiningDateInput');
+    if (!document.getElementById('empStatusInput').value) markInvalid('empStatusInput');
+    if (!document.getElementById('empAddressInput').value.trim()) markInvalid('empAddressInput');
+
+    const aadharFile = document.getElementById('empAadharFileInput').files[0];
+    if (!isEdit && !aadharFile) {
+        markInvalid('empAadharFileInput');
+    } else if (aadharFile && !/\.(jpg|jpeg|png)$/i.test(aadharFile.name)) {
+        markInvalid('empAadharFileInput');
+    }
+
+    const notaryFile = document.getElementById('empNotaryFileInput').files[0];
+    if (!isEdit && !notaryFile) {
+        markInvalid('empNotaryFileInput');
+    } else if (notaryFile && !/\.pdf$/i.test(notaryFile.name)) {
+        markInvalid('empNotaryFileInput');
+    }
+
+    return valid;
+}
+
+function submitEmpForm() {
+    if (!validateEmpForm()) {
+        showAlert('error', 'Please fix the highlighted fields.');
+        return;
+    }
+    const id = document.getElementById('empId').value;
+    const form = document.getElementById('empForm');
+    const formData = new FormData(form);
+    $.ajax({
+        url: id ? '/employees/edit/'+id : '/employees/add',
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function(res) {
+            showAlert(res.success?'success':'error', res.message);
+            if(res.success){ closeModal('empModal'); loadEmployees(); }
+        },
+        error: function(){ showAlert('error','Server error'); }
+    });
+}
+function deleteEmp(id){ confirmDelete('/employees/delete/'+id, loadEmployees); }
+
+loadEmployees();
+</script>
+{% endblock %}

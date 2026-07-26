@@ -1,0 +1,674 @@
+{% extends "base.html" %}
+{% block title %}Dear Soft IT Solutions{% endblock %}
+
+{% block content %}
+<div class="page-title-bar">
+    <h5><i class="bi bi-truck-front-fill me-2"></i>Vehicle Management</h5>
+    <nav aria-label="breadcrumb"><ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
+        <li class="breadcrumb-item active">Vehicles</li>
+    </ol></nav>
+</div>
+
+<ul class="nav bms-tabs mb-3" id="vehicleTabs">
+    <li class="nav-item"><a class="nav-link active" href="#" onclick="showTab('vehicles',this);return false;"><i class="bi bi-truck me-1"></i>Vehicles</a></li>
+    <li class="nav-item"><a class="nav-link" href="#" onclick="showTab('drivers',this);return false;"><i class="bi bi-person-badge me-1"></i>Drivers</a></li>
+    <li class="nav-item"><a class="nav-link" href="#" onclick="showTab('trips',this);return false;"><i class="bi bi-signpost me-1"></i>Trips</a></li>
+    <li class="nav-item"><a class="nav-link" href="#" onclick="showTab('maintenance',this);return false;"><i class="bi bi-tools me-1"></i>Maintenance</a></li>
+</ul>
+
+<!-- VEHICLES TAB -->
+<div id="tab-vehicles">
+    <div class="panel">
+        <div class="panel-head">
+            <h6><i class="bi bi-truck me-2"></i>All Vehicles</h6>
+            <div class="d-flex gap-2 align-items-center"><span id="veh-search-wrap"></span><span id="veh-export-wrap"></span><button class="btn-bms-primary" onclick="openAddVehicleModal()"><i class="bi bi-plus-circle"></i> Add Vehicle</button></div>
+        </div>
+        <div class="table-responsive">
+            <table class="bms-table" id="vehicleTable">
+                <thead><tr><th>Sr.No</th><th>Vehicle No.</th><th>Vehicle Name/Model</th><th>Year</th><th>Driver</th><th>Fuel Type</th><th>Status</th><th>Edit</th><th>Delete</th></tr></thead>
+                <tbody id="vehicleTableBody"><tr><td colspan="9" class="loading-spinner"><span class="spinner-border spinner-border-sm"></span> Loading...</td></tr></tbody>
+            </table>
+        </div>
+        <div id="veh-pager"></div>
+    </div>
+</div>
+
+<!-- DRIVERS TAB -->
+<div id="tab-drivers" style="display:none">
+    <div class="panel">
+        <div class="panel-head">
+            <h6><i class="bi bi-person-badge me-2"></i>Drivers</h6>
+            <div class="d-flex gap-2 align-items-center"><span id="drv-search-wrap"></span><span id="drv-export-wrap"></span><button class="btn-bms-primary" onclick="openAddDriverModal()"><i class="bi bi-plus-circle"></i> Add Driver</button></div>
+        </div>
+        <div class="table-responsive">
+            <table class="bms-table" id="driverTable">
+                <thead><tr><th>Sr.No</th><th>Driver Name</th><th>License No.</th><th>Contact No.</th><th>Aadhaar No.</th><th>Vehicles</th><th>Status</th><th>Edit</th><th>Delete</th></tr></thead>
+                <tbody id="driverTableBody"><tr><td colspan="9" class="text-center py-3 text-muted">Load tab to see data</td></tr></tbody>
+            </table>
+        </div>
+        <div id="drv-pager"></div>
+    </div>
+</div>
+
+<!-- TRIPS TAB -->
+<div id="tab-trips" style="display:none">
+    <div class="panel">
+        <div class="panel-head">
+            <h6><i class="bi bi-signpost me-2"></i>Trips</h6>
+            <div class="d-flex gap-2 align-items-center"><span id="trp-search-wrap"></span><span id="trp-export-wrap"></span><button class="btn-bms-primary" onclick="openAddTripModal()"><i class="bi bi-plus-circle"></i> Add Trip</button></div>
+        </div>
+        <div class="table-responsive">
+            <table class="bms-table" id="tripTable">
+                <thead><tr><th>Sr.No</th><th>Date</th><th>Vehicle</th><th>Driver</th><th>From</th><th>To</th><th>Days</th><th>Fuel</th><th>Driver Exp.</th><th>Other</th><th>Status</th><th>Edit</th><th>Delete</th></tr></thead>
+                <tbody id="tripTableBody"><tr><td colspan="13" class="text-center py-3 text-muted">Load tab to see data</td></tr></tbody>
+            </table>
+        </div>
+        <div id="trp-pager"></div>
+    </div>
+</div>
+
+<!-- MAINTENANCE TAB -->
+<div id="tab-maintenance" style="display:none">
+    <div class="panel">
+        <div class="panel-head">
+            <h6><i class="bi bi-tools me-2"></i>Maintenance Records</h6>
+            <div class="d-flex gap-2 align-items-center"><span id="mnt-search-wrap"></span><span id="mnt-export-wrap"></span><button class="btn-bms-primary" onclick="openAddMaintModal()"><i class="bi bi-plus-circle"></i> Add Record</button></div>
+        </div>
+        <div class="table-responsive">
+            <table class="bms-table" id="maintTable">
+                <thead><tr><th>Sr.No</th><th>Vehicle Number</th><th>Maintenance Type</th><th>Date</th><th>Cost</th><th>Description</th><th>Edit</th><th>Delete</th></tr></thead>
+                <tbody id="maintTableBody"><tr><td colspan="8" class="text-center py-3 text-muted">Load tab to see data</td></tr></tbody>
+            </table>
+        </div>
+        <div id="mnt-pager"></div>
+    </div>
+</div>
+
+<!-- INVESTMENTS TAB -->
+<div id="tab-investments" style="display:none">
+    <div class="panel">
+        <div class="panel-head">
+            <h6><i class="bi bi-cash-stack me-2"></i>Vehicle Investments</h6>
+            <div class="d-flex gap-2 align-items-center"><span id="inv-search-wrap"></span><span id="inv-export-wrap"></span><button class="btn-bms-primary" onclick="openAddInvestModal()"><i class="bi bi-plus-circle"></i> Add Investment</button></div>
+        </div>
+        <div class="table-responsive">
+            <table class="bms-table" id="investTable">
+                <thead><tr><th>Sr.No</th><th>Vehicle</th><th>Type</th><th>Amount</th><th>Date</th><th>Description</th><th>Delete</th></tr></thead>
+                <tbody id="investTableBody"><tr><td colspan="7" class="text-center py-3 text-muted">Load tab to see data</td></tr></tbody>
+            </table>
+        </div>
+        <div id="inv-pager"></div>
+    </div>
+</div>
+
+<!-- VEHICLE MODAL -->
+<div class="modal fade" id="vehicleModal" tabindex="-1">
+    <div class="modal-dialog modal-lg"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title" id="vehicleModalTitle"><i class="bi bi-truck me-2"></i>Add Vehicle</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body"><form id="vehicleForm"><input type="hidden" id="vehicleId">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Vehicle Number *</label>
+                    <input type="text" class="form-control" name="vehicle_number" id="vehNumberInput" required>
+                    <div class="invalid-feedback">Vehicle Number is mandatory.</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Vehicle Name *</label>
+                    <input type="text" class="form-control" name="vehicle_name" id="vehNameInput" placeholder="Toyota, Isuzu..." required>
+                    <div class="invalid-feedback">Vehicle Name is mandatory.</div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Model *</label>
+                    <input type="text" class="form-control" name="model" id="vehModelInput" required>
+                    <div class="invalid-feedback">Model is mandatory.</div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Year *</label>
+                    <input type="number" class="form-control" name="year" id="vehYearInput" min="1990" max="2030" required>
+                    <div class="invalid-feedback">Year is mandatory.</div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Driver *</label>
+                    <select class="form-select" name="driver_id" id="vehicleDriverSelect" required>
+                        <option value="">-- Select Driver --</option>
+                    </select>
+                    <div class="invalid-feedback">Driver selection is mandatory.</div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Vehicle Insurance *</label>
+                    <input type="text" class="form-control" name="insurance" id="vehInsuranceInput" placeholder="Policy No." required>
+                    <div class="invalid-feedback">Vehicle Insurance is mandatory.</div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Road Tax *</label>
+                    <input type="text" class="form-control" name="road_tax" id="vehRoadTaxInput" placeholder="Receipt No." required>
+                    <div class="invalid-feedback">Road Tax is mandatory.</div>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">PUC *</label>
+                    <input type="text" class="form-control" name="puc" id="vehPucInput" placeholder="Certificate No." required>
+                    <div class="invalid-feedback">PUC is mandatory.</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Fuel Type *</label>
+                    <select class="form-select" name="fuel_type" id="vehFuelTypeInput" required>
+                        <option value="">-- Select Fuel Type --</option>
+                        <option value="Petrol">Petrol</option>
+                        <option value="Diesel">Diesel</option>
+                        <option value="Gas">Gas</option>
+                        <option value="Battery">Battery</option>
+                    </select>
+                    <div class="invalid-feedback">Fuel Type is mandatory.</div>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Status *</label>
+                    <select class="form-select" name="status" id="vehStatusInput" required>
+                        <option value="active">Active</option><option value="inactive">Inactive</option>
+                    </select>
+                    <div class="invalid-feedback">Status is mandatory.</div>
+                </div>
+            </div>
+        </form></div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" form="vehicleForm" class="btn-bms-primary"><i class="bi bi-save"></i> Save</button></div>
+    </div></div>
+</div>
+
+<!-- DRIVER MODAL -->
+<div class="modal fade" id="driverModal" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title" id="driverModalTitle"><i class="bi bi-person-badge me-2"></i>Add Driver</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body"><form id="driverForm" enctype="multipart/form-data"><input type="hidden" id="driverId">
+            <div class="mb-3">
+                <label class="form-label">Driver Name *</label>
+                <input type="text" class="form-control" name="name" id="drvNameInput" required>
+                <div class="invalid-feedback">Driver Name is mandatory.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">License Number *</label>
+                <input type="text" class="form-control" name="license_number" id="drvLicenseInput" required>
+                <div class="invalid-feedback">License Number is mandatory.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Contact Number *</label>
+                <input type="text" class="form-control" name="mobile" id="drvMobileInput" placeholder="10 digit number" inputmode="numeric" maxlength="10" required>
+                <div class="invalid-feedback">Contact Number must contain 10 digits.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Aadhaar Number *</label>
+                <input type="text" class="form-control" name="aadhar_number" id="drvAadharInput" placeholder="12 digit number" inputmode="numeric" maxlength="12" required>
+                <div class="invalid-feedback">Aadhaar Number must contain 12 digits.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Address *</label>
+                <textarea class="form-control" name="address" id="drvAddressInput" rows="2" required></textarea>
+                <div class="invalid-feedback">Address is mandatory.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Aadhaar Card Photo Upload *</label>
+                <input type="file" class="form-control" name="aadhar_photo" id="drvAadharFileInput" accept="image/*">
+                <div class="invalid-feedback">Aadhaar Card Photo Upload is mandatory.</div>
+                <div id="drvCurrentAadharPhoto" class="mt-1"></div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Driving License Photo Upload *</label>
+                <input type="file" class="form-control" name="license_photo" id="drvLicenseFileInput" accept="image/*">
+                <div class="invalid-feedback">Driving License Photo Upload is mandatory.</div>
+                <div id="drvCurrentLicensePhoto" class="mt-1"></div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Status *</label>
+                <select class="form-select" name="status" id="drvStatusInput" required><option value="active">Active</option><option value="inactive">Inactive</option></select>
+                <div class="invalid-feedback">Status is mandatory.</div>
+            </div>
+        </form></div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" form="driverForm" class="btn-bms-primary"><i class="bi bi-save"></i> Save</button></div>
+    </div></div>
+</div>
+
+<!-- TRIP MODAL -->
+<div class="modal fade" id="tripModal" tabindex="-1">
+    <div class="modal-dialog modal-lg"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title" id="tripModalTitle"><i class="bi bi-signpost me-2"></i>Add Trip</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body"><form id="tripForm"><input type="hidden" id="tripId">
+            <div class="row g-3">
+                <div class="col-md-6"><label class="form-label">Vehicle *</label><select class="form-select" name="vehicle_id" id="tripVehicleSelect" required><option value="">-- Select --</option></select></div>
+                <div class="col-md-6"><label class="form-label">Driver</label><select class="form-select" name="driver_id" id="tripDriverSelect"><option value="">-- Select Driver --</option></select></div>
+                <div class="col-md-6"><label class="form-label">From Location</label><input type="text" class="form-control" name="from_location"></div>
+                <div class="col-md-6"><label class="form-label">To Location</label><input type="text" class="form-control" name="to_location"></div>
+                <div class="col-md-4"><label class="form-label">Trip Date</label><input type="date" class="form-control" name="date"></div>
+                <div class="col-md-4"><label class="form-label">Return Date</label><input type="date" class="form-control" name="return_date"></div>
+                <div class="col-md-4"><label class="form-label">Days</label><input type="number" class="form-control" name="days" min="0"></div>
+                <div class="col-md-4"><label class="form-label">Fuel Expense (Rs.)</label><input type="number" class="form-control" name="fuel_expense" step="0.01" value="0"></div>
+                <div class="col-md-4"><label class="form-label">Driver Expense (Rs.)</label><input type="number" class="form-control" name="driver_expense" step="0.01" value="0"></div>
+                <div class="col-md-4"><label class="form-label">Other Expense (Rs.)</label><input type="number" class="form-control" name="other_expense" step="0.01" value="0"></div>
+                <div class="col-md-6"><label class="form-label">Status</label>
+                    <select class="form-select" name="status">
+                        <option value="planned">Planned</option><option value="in_progress">In Progress</option>
+                        <option value="completed">Completed</option><option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="col-12"><label class="form-label">Purpose</label><textarea class="form-control" name="purpose" rows="2"></textarea></div>
+            </div>
+        </form></div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" form="tripForm" class="btn-bms-primary"><i class="bi bi-save"></i> Save</button></div>
+    </div></div>
+</div>
+
+<!-- MAINTENANCE MODAL -->
+<div class="modal fade" id="maintModal" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title" id="maintModalTitle"><i class="bi bi-tools me-2"></i>Add Maintenance</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body"><form id="maintForm"><input type="hidden" id="maintId">
+            <div class="mb-3">
+                <label class="form-label">Vehicle Number *</label>
+                <select class="form-select" name="vehicle_id" id="maintVehicleSelect" required>
+                    <option value="">-- Select Vehicle Number --</option>
+                </select>
+                <div class="invalid-feedback">Vehicle Number is mandatory.</div>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Maintenance Type *</label>
+                <select class="form-select" name="maintenance_type" id="maintTypeInput" required>
+                    <option value="">-- Select Maintenance Type --</option>
+                    <option value="Oil Change">Oil Change</option>
+                    <option value="Servicing">Servicing</option>
+                    <option value="Washing">Washing</option>
+                    <option value="Tire Change">Tire Change</option>
+                    <option value="Other">Other</option>
+                </select>
+                <div class="invalid-feedback">Maintenance Type is mandatory.</div>
+            </div>
+            <div class="row g-3">
+                <div class="col-6">
+                    <label class="form-label">Date *</label>
+                    <input type="date" class="form-control" name="date" id="maintDateInput" required>
+                    <div class="invalid-feedback">Date is mandatory.</div>
+                </div>
+                <div class="col-6">
+                    <label class="form-label">Cost (Rs.) *</label>
+                    <input type="number" class="form-control" name="cost" id="maintCostInput" step="0.01" required>
+                    <div class="invalid-feedback">Cost (Rs.) is mandatory and must be a valid numeric value.</div>
+                </div>
+            </div>
+            <div class="mb-3 mt-3"><label class="form-label">Description</label><textarea class="form-control" name="description" id="maintDescInput" rows="2"></textarea></div>
+        </form></div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" form="maintForm" class="btn-bms-primary"><i class="bi bi-save"></i> Save</button></div>
+    </div></div>
+</div>
+
+<!-- INVESTMENT MODAL -->
+<div class="modal fade" id="investModal" tabindex="-1">
+    <div class="modal-dialog"><div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title"><i class="bi bi-cash-stack me-2"></i>Add Investment</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body"><form id="investForm">
+            <div class="mb-3"><label class="form-label">Vehicle *</label><select class="form-select" name="vehicle_id" id="investVehicleSelect" required><option value="">-- Select Vehicle --</option></select></div>
+            <div class="mb-3"><label class="form-label">Investment Type *</label><input type="text" class="form-control" name="investment_type" required placeholder="Purchase, Upgrade, Insurance..."></div>
+            <div class="row g-3">
+                <div class="col-6"><label class="form-label">Amount (Rs.) *</label><input type="number" class="form-control" name="amount" required step="0.01"></div>
+                <div class="col-6"><label class="form-label">Date *</label><input type="date" class="form-control" name="investment_date" required></div>
+            </div>
+            <div class="mb-3 mt-3"><label class="form-label">Description</label><textarea class="form-control" name="description" rows="2"></textarea></div>
+        </form></div>
+        <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" form="investForm" class="btn-bms-primary"><i class="bi bi-save"></i> Save</button></div>
+    </div></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function showTab(tab,el) {
+    document.querySelectorAll('[id^="tab-"]').forEach(e => e.style.display = 'none');
+    document.getElementById('tab-' + tab).style.display = 'block';
+    document.querySelectorAll('#vehicleTabs .nav-link').forEach(e => e.classList.remove('active'));
+    el.classList.add('active');
+    if (tab === 'vehicles') loadVehicles();
+    if (tab === 'drivers') loadDrivers();
+    if (tab === 'trips') loadTrips();
+    if (tab === 'maintenance') loadMaintenance();
+    if (tab === 'investments') loadInvestments();
+}
+
+function loadVehicles() {
+    tableLoading('vehicleTableBody', 9);
+    $.get('/vehicles/data', function(data) {
+        document.getElementById('veh-pager').innerHTML = pagerBar('veh');
+        document.getElementById('veh-search-wrap').innerHTML = searchBar('veh','Search vehicles...');
+        document.getElementById('veh-export-wrap').innerHTML = exportBar('veh','vehicles','vehicleTable');
+        BmsPager.init('veh', data, function(slice, offset) {
+            if (!slice.length) { tableEmpty('vehicleTableBody', 9); return; }
+            let html = '';
+            slice.forEach((v, i) => {
+                html += `<tr><td>${offset+i+1}</td><td><strong>${v.vehicle_number}</strong></td><td>${v.vehicle_name||''} ${v.model||''}</td><td>${v.year||'--'}</td><td>${v.driver_name||'<em class="text-muted">None</em>'}</td><td>${v.fuel_type||'--'}</td><td>${statusBadge(v.status)}</td><td>${editBtn('openEditVehicleModal('+v.id+')')}</td><td>${deleteBtn('deleteVehicle('+v.id+')')}</td></tr>`;
+            });
+            document.getElementById('vehicleTableBody').innerHTML = html;
+        }, {perPage:25});
+    });
+}
+
+function loadDrivers() {
+    tableLoading('driverTableBody', 9);
+    $.get('/vehicles/drivers/data', function(data) {
+        document.getElementById('drv-pager').innerHTML = pagerBar('drv');
+        document.getElementById('drv-search-wrap').innerHTML = searchBar('drv','Search drivers...');
+        document.getElementById('drv-export-wrap').innerHTML = exportBar('drv','drivers','driverTable');
+        BmsPager.init('drv', data, function(slice, offset) {
+            if (!slice.length) { tableEmpty('driverTableBody', 9); return; }
+            let html = '';
+            slice.forEach((d, i) => {
+                html += `<tr><td>${offset+i+1}</td><td><strong>${d.name}</strong></td><td>${d.license_number||'--'}</td><td>${d.mobile||'--'}</td><td>${d.aadhar_number||'--'}</td><td><span class="badge bg-secondary">${d.vehicle_count} vehicles</span></td><td>${statusBadge(d.status)}</td><td>${editBtn('openEditDriverModal('+d.id+')')}</td><td>${deleteBtn('deleteDriver('+d.id+')')}</td></tr>`;
+            });
+            document.getElementById('driverTableBody').innerHTML = html;
+        }, {perPage:25});
+    });
+}
+
+function loadTrips() {
+    tableLoading('tripTableBody', 13);
+    $.get('/vehicles/trips/data', function(data) {
+        document.getElementById('trp-pager').innerHTML = pagerBar('trp');
+        document.getElementById('trp-search-wrap').innerHTML = searchBar('trp','Search trips...');
+        document.getElementById('trp-export-wrap').innerHTML = exportBar('trp','trips','tripTable');
+        BmsPager.init('trp', data, function(slice, offset) {
+            if (!slice.length) { tableEmpty('tripTableBody', 13); return; }
+            let html = '';
+            slice.forEach((t, i) => {
+                html += `<tr>
+                    <td>${offset+i+1}</td>
+                    <td>${fmtDate(t.date)}</td>
+                    <td>${t.vehicle_number}</td>
+                    <td>${t.driver_name||'--'}</td>
+                    <td>${t.from_location||'--'}</td>
+                    <td>${t.to_location||'--'}</td>
+                    <td>${t.days||'--'}</td>
+                    <td>${fmtCurrency(t.fuel_expense)}</td>
+                    <td>${fmtCurrency(t.driver_expense)}</td>
+                    <td>${fmtCurrency(t.other_expense)}</td>
+                    <td>${statusBadge(t.status)}</td>
+                    <td>${editBtn('openEditTripModal('+t.id+')')}</td>
+                    <td>${deleteBtn('deleteTrip('+t.id+')')}</td>
+                </tr>`;
+            });
+            document.getElementById('tripTableBody').innerHTML = html;
+        }, {perPage:25});
+    });
+}
+
+function loadMaintenance() {
+    tableLoading('maintTableBody', 8);
+    $.get('/vehicles/maintenance/data', function(data) {
+        document.getElementById('mnt-pager').innerHTML = pagerBar('mnt');
+        document.getElementById('mnt-search-wrap').innerHTML = searchBar('mnt','Search maintenance...');
+        document.getElementById('mnt-export-wrap').innerHTML = exportBar('mnt','vehicle_maintenance','maintTable');
+        BmsPager.init('mnt', data, function(slice, offset) {
+            if (!slice.length) { tableEmpty('maintTableBody', 8); return; }
+            let html = '';
+            slice.forEach((m, i) => {
+                html += `<tr><td>${offset+i+1}</td><td>${m.vehicle_number}</td><td>${m.maintenance_type||'--'}</td><td>${fmtDate(m.date)}</td><td>${fmtCurrency(m.cost)}</td><td>${m.description?m.description.substring(0,50):'--'}</td><td>${editBtn('openEditMaintModal('+m.id+')')}</td><td>${deleteBtn('deleteMaint('+m.id+')')}</td></tr>`;
+            });
+            document.getElementById('maintTableBody').innerHTML = html;
+        }, {perPage:25});
+    });
+}
+
+function loadInvestments() {
+    tableLoading('investTableBody', 7);
+    $.get('/vehicles/investments/data', function(data) {
+        document.getElementById('inv-pager').innerHTML = pagerBar('inv');
+        document.getElementById('inv-search-wrap').innerHTML = searchBar('inv','Search investments...');
+        document.getElementById('inv-export-wrap').innerHTML = exportBar('inv','vehicle_investments','investTable');
+        BmsPager.init('inv', data, function(slice, offset) {
+            if (!slice.length) { tableEmpty('investTableBody', 7); return; }
+            let html = '';
+            slice.forEach((iv, i) => {
+                html += `<tr>
+                    <td>${offset+i+1}</td>
+                    <td>${iv.vehicle_number}</td>
+                    <td>${iv.investment_type||'--'}</td>
+                    <td><strong>${fmtCurrency(iv.amount)}</strong></td>
+                    <td>${fmtDate(iv.investment_date)}</td>
+                    <td>${iv.description?iv.description.substring(0,50):'--'}</td>
+                    <td>${deleteBtn('deleteInvest('+iv.id+')')}</td>
+                </tr>`;
+            });
+            document.getElementById('investTableBody').innerHTML = html;
+        }, {perPage:25});
+    });
+}
+
+function loadDriverSelect(selId) {
+    $.get('/vehicles/drivers-list', function(data) {
+        const sel = document.getElementById(selId);
+        sel.innerHTML = '<option value="">-- No Driver --</option>';
+        data.forEach(d => sel.innerHTML += `<option value="${d.id}">${d.name}</option>`);
+    });
+}
+function loadVehicleSelect(selId) {
+    $.get('/vehicles/vehicles-list', function(data) {
+        const sel = document.getElementById(selId);
+        sel.innerHTML = '<option value="">-- Select Vehicle --</option>';
+        data.forEach(v => sel.innerHTML += `<option value="${v.id}">${v.vehicle_number}</option>`);
+    });
+}
+
+// VEHICLE
+function clearVehicleValidation(){
+    document.getElementById('vehicleForm').querySelectorAll('.is-invalid').forEach(el=>el.classList.remove('is-invalid'));
+}
+function validateVehicleForm(){
+    clearVehicleValidation();
+    let valid = true;
+    const markInvalid = id => { document.getElementById(id).classList.add('is-invalid'); valid = false; };
+
+    if (!document.getElementById('vehNumberInput').value.trim()) markInvalid('vehNumberInput');
+    if (!document.getElementById('vehNameInput').value.trim()) markInvalid('vehNameInput');
+    if (!document.getElementById('vehModelInput').value.trim()) markInvalid('vehModelInput');
+    if (!document.getElementById('vehYearInput').value) markInvalid('vehYearInput');
+    if (!document.getElementById('vehicleDriverSelect').value) markInvalid('vehicleDriverSelect');
+    if (!document.getElementById('vehInsuranceInput').value.trim()) markInvalid('vehInsuranceInput');
+    if (!document.getElementById('vehRoadTaxInput').value.trim()) markInvalid('vehRoadTaxInput');
+    if (!document.getElementById('vehPucInput').value.trim()) markInvalid('vehPucInput');
+    if (!document.getElementById('vehFuelTypeInput').value) markInvalid('vehFuelTypeInput');
+    if (!document.getElementById('vehStatusInput').value) markInvalid('vehStatusInput');
+
+    return valid;
+}
+function _fixVehicleDriverPlaceholder(){
+    setTimeout(()=>{
+        const sel = document.getElementById('vehicleDriverSelect');
+        if (sel.options[0]) sel.options[0].textContent = '-- Select Driver --';
+    }, 200);
+}
+function openAddVehicleModal() {
+    document.getElementById('vehicleModalTitle').innerHTML = '<i class="bi bi-truck me-2"></i>Add Vehicle';
+    document.getElementById('vehicleForm').reset(); document.getElementById('vehicleId').value = '';
+    clearVehicleValidation();
+    loadDriverSelect('vehicleDriverSelect');
+    _fixVehicleDriverPlaceholder();
+    openModal('vehicleModal');
+}
+function openEditVehicleModal(id) {
+    document.getElementById('vehicleModalTitle').innerHTML = '<i class="bi bi-pencil-square me-2"></i>Edit Vehicle';
+    loadDriverSelect('vehicleDriverSelect');
+    _fixVehicleDriverPlaceholder();
+    clearVehicleValidation();
+    $.get('/vehicles/get/' + id, function(d) {
+        document.getElementById('vehicleId').value = id;
+        const f = document.getElementById('vehicleForm');
+        ['vehicle_number','vehicle_name','model','year','insurance','road_tax','puc','fuel_type','status'].forEach(k=>{ const el=f.querySelector('[name="'+k+'"]'); if(el) el.value=d[k]||''; });
+        setTimeout(() => { document.getElementById('vehicleDriverSelect').value = d.driver_id || ''; }, 300);
+        openModal('vehicleModal');
+    });
+}
+function deleteVehicle(id) { confirmDelete('/vehicles/delete/' + id, loadVehicles); }
+
+// DRIVER
+function clearDriverValidation(){
+    document.getElementById('driverForm').querySelectorAll('.is-invalid').forEach(el=>el.classList.remove('is-invalid'));
+}
+function validateDriverForm(){
+    clearDriverValidation();
+    const isEdit = !!document.getElementById('driverId').value;
+    let valid = true;
+    const markInvalid = id => { document.getElementById(id).classList.add('is-invalid'); valid = false; };
+
+    if (!document.getElementById('drvNameInput').value.trim()) markInvalid('drvNameInput');
+    if (!document.getElementById('drvLicenseInput').value.trim()) markInvalid('drvLicenseInput');
+
+    const mobile = document.getElementById('drvMobileInput').value.trim();
+    if (!/^\d{10}$/.test(mobile)) markInvalid('drvMobileInput');
+
+    const aadhar = document.getElementById('drvAadharInput').value.trim();
+    if (!/^\d{12}$/.test(aadhar)) markInvalid('drvAadharInput');
+
+    if (!document.getElementById('drvAddressInput').value.trim()) markInvalid('drvAddressInput');
+    if (!document.getElementById('drvStatusInput').value) markInvalid('drvStatusInput');
+
+    const aadharFile = document.getElementById('drvAadharFileInput').files[0];
+    if (!isEdit && !aadharFile) markInvalid('drvAadharFileInput');
+
+    const licenseFile = document.getElementById('drvLicenseFileInput').files[0];
+    if (!isEdit && !licenseFile) markInvalid('drvLicenseFileInput');
+
+    return valid;
+}
+function openAddDriverModal() {
+    document.getElementById('driverModalTitle').innerHTML = '<i class="bi bi-person-badge me-2"></i>Add Driver';
+    document.getElementById('driverForm').reset(); document.getElementById('driverId').value = '';
+    document.getElementById('drvCurrentAadharPhoto').innerHTML = '';
+    document.getElementById('drvCurrentLicensePhoto').innerHTML = '';
+    clearDriverValidation();
+    openModal('driverModal');
+}
+function openEditDriverModal(id) {
+    document.getElementById('driverModalTitle').innerHTML = '<i class="bi bi-pencil-square me-2"></i>Edit Driver';
+    clearDriverValidation();
+    $.get('/vehicles/drivers/get/' + id, function(d) {
+        document.getElementById('driverId').value = id;
+        const f = document.getElementById('driverForm');
+        ['name','license_number','mobile','aadhar_number','address','status'].forEach(k=>{ const el=f.querySelector('[name="'+k+'"]'); if(el) el.value=d[k]||''; });
+        document.getElementById('drvCurrentAadharPhoto').innerHTML = d.aadhar_photo
+            ? `<small class="text-muted">Current: <img src="/static/uploads/driver_aadhar/${d.aadhar_photo}" style="height:30px;border-radius:3px;"> (upload new to replace)</small>`
+            : '';
+        document.getElementById('drvCurrentLicensePhoto').innerHTML = d.license_photo
+            ? `<small class="text-muted">Current: <img src="/static/uploads/driver_license/${d.license_photo}" style="height:30px;border-radius:3px;"> (upload new to replace)</small>`
+            : '';
+        openModal('driverModal');
+    });
+}
+function deleteDriver(id) { confirmDelete('/vehicles/drivers/delete/' + id, loadDrivers); }
+
+// TRIP
+function openAddTripModal() {
+    document.getElementById('tripModalTitle').innerHTML = '<i class="bi bi-signpost me-2"></i>Add Trip';
+    document.getElementById('tripForm').reset(); document.getElementById('tripId').value = '';
+    loadVehicleSelect('tripVehicleSelect'); loadDriverSelect('tripDriverSelect');
+    openModal('tripModal');
+}
+function openEditTripModal(id) {
+    document.getElementById('tripModalTitle').innerHTML = '<i class="bi bi-pencil-square me-2"></i>Edit Trip';
+    loadVehicleSelect('tripVehicleSelect'); loadDriverSelect('tripDriverSelect');
+    $.get('/vehicles/trips/get/' + id, function(t) {
+        document.getElementById('tripId').value = id;
+        const f = document.getElementById('tripForm');
+        ['from_location','to_location','date','return_date','days','fuel_expense','driver_expense','other_expense','purpose','status'].forEach(k=>{
+            const el=f.querySelector('[name="'+k+'"]'); if(el) el.value=t[k]||'';
+        });
+        setTimeout(() => {
+            document.getElementById('tripVehicleSelect').value = t.vehicle_id || '';
+            document.getElementById('tripDriverSelect').value = t.driver_id || '';
+        }, 300);
+        openModal('tripModal');
+    });
+}
+function deleteTrip(id) { confirmDelete('/vehicles/trips/delete/' + id, loadTrips); }
+
+// MAINTENANCE
+function clearMaintValidation(){
+    document.getElementById('maintForm').querySelectorAll('.is-invalid').forEach(el=>el.classList.remove('is-invalid'));
+}
+function validateMaintForm(){
+    clearMaintValidation();
+    let valid = true;
+    const markInvalid = id => { document.getElementById(id).classList.add('is-invalid'); valid = false; };
+
+    if (!document.getElementById('maintVehicleSelect').value) markInvalid('maintVehicleSelect');
+    if (!document.getElementById('maintTypeInput').value) markInvalid('maintTypeInput');
+    if (!document.getElementById('maintDateInput').value) markInvalid('maintDateInput');
+
+    const cost = document.getElementById('maintCostInput').value;
+    if (cost === '' || isNaN(parseFloat(cost)) || parseFloat(cost) < 0) markInvalid('maintCostInput');
+
+    return valid;
+}
+function openAddMaintModal() {
+    document.getElementById('maintModalTitle').innerHTML = '<i class="bi bi-tools me-2"></i>Add Maintenance';
+    document.getElementById('maintForm').reset(); document.getElementById('maintId').value = '';
+    clearMaintValidation();
+    loadVehicleSelect('maintVehicleSelect');
+    openModal('maintModal');
+}
+function openEditMaintModal(id) {
+    document.getElementById('maintModalTitle').innerHTML = '<i class="bi bi-pencil-square me-2"></i>Edit Maintenance';
+    loadVehicleSelect('maintVehicleSelect');
+    clearMaintValidation();
+    $.get('/vehicles/maintenance/get/' + id, function(m) {
+        document.getElementById('maintId').value = id;
+        const f = document.getElementById('maintForm');
+        ['maintenance_type','date','cost','description'].forEach(k=>{ const el=f.querySelector('[name="'+k+'"]'); if(el) el.value=m[k]||''; });
+        setTimeout(() => { document.getElementById('maintVehicleSelect').value = m.vehicle_id || ''; }, 300);
+        openModal('maintModal');
+    });
+}
+function deleteMaint(id) { confirmDelete('/vehicles/maintenance/delete/' + id, loadMaintenance); }
+
+// INVESTMENT
+function openAddInvestModal() {
+    document.getElementById('investForm').reset();
+    loadVehicleSelect('investVehicleSelect');
+    openModal('investModal');
+}
+function deleteInvest(id) { confirmDelete('/vehicles/investments/delete/' + id, loadInvestments); }
+
+// Form handlers
+document.getElementById('vehicleForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (!validateVehicleForm()) { showAlert('error', 'Please fix the highlighted fields.'); return; }
+    const id = document.getElementById('vehicleId').value;
+    $.ajax({ url: id ? '/vehicles/edit/' + id : '/vehicles/add', method: 'POST', data: $(this).serialize(),
+        success: function(res) { if (res.success) { showAlert('success', res.message); closeModal('vehicleModal'); loadVehicles(); } else showAlert('error', res.message); }
+    });
+});
+document.getElementById('driverForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (!validateDriverForm()) { showAlert('error', 'Please fix the highlighted fields.'); return; }
+    const id = document.getElementById('driverId').value;
+    const formData = new FormData(this);
+    $.ajax({ url: id ? '/vehicles/drivers/edit/' + id : '/vehicles/drivers/add', method: 'POST', data: formData, processData: false, contentType: false,
+        success: function(res) { if (res.success) { showAlert('success', res.message); closeModal('driverModal'); loadDrivers(); } else showAlert('error', res.message); }
+    });
+});
+document.getElementById('tripForm').addEventListener('submit', function(e) {
+    e.preventDefault(); const id = document.getElementById('tripId').value;
+    $.ajax({ url: id ? '/vehicles/trips/edit/' + id : '/vehicles/trips/add', method: 'POST', data: $(this).serialize(),
+        success: function(res) { if (res.success) { showAlert('success', res.message); closeModal('tripModal'); loadTrips(); } else showAlert('error', res.message); }
+    });
+});
+document.getElementById('maintForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (!validateMaintForm()) { showAlert('error', 'Please fix the highlighted fields.'); return; }
+    const id = document.getElementById('maintId').value;
+    $.ajax({ url: id ? '/vehicles/maintenance/edit/' + id : '/vehicles/maintenance/add', method: 'POST', data: $(this).serialize(),
+        success: function(res) { if (res.success) { showAlert('success', res.message); closeModal('maintModal'); loadMaintenance(); } else showAlert('error', res.message); }
+    });
+});
+document.getElementById('investForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    $.ajax({ url: '/vehicles/investments/add', method: 'POST', data: $(this).serialize(),
+        success: function(res) { if (res.success) { showAlert('success', res.message); closeModal('investModal'); loadInvestments(); } else showAlert('error', res.message); }
+    });
+});
+
+loadVehicles();
+</script>
+{% endblock %}
