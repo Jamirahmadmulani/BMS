@@ -91,6 +91,9 @@ def index():
 
 with app.app_context():
     db.create_all()
+    if not User.query.first():
+        db.session.add(User(name='Admin', username='admin', password='admin123', role='admin'))
+        db.session.commit()
 
 if __name__ == '__main__':
     import os
